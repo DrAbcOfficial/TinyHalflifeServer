@@ -1,7 +1,7 @@
 ﻿using Steamworks;
 using System.Net;
 
-namespace TinyHalflifeServer.SteamServer
+namespace TinyHalflifeServer.Steam
 {
     public struct SteamAuthInfo(UInt64 steamId, EAuthSessionResponse code)
     {
@@ -37,7 +37,7 @@ namespace TinyHalflifeServer.SteamServer
         }
     }
 
-    class SteamServer
+    public class SteamServer
     {
         #region Callback
         protected Callback<SteamServersConnected_t> m_CallbackLogonSuccess;
@@ -69,7 +69,7 @@ namespace TinyHalflifeServer.SteamServer
         const ushort STEAMGAMESERVER_QUERY_PORT_SHARED = 0xffff;
         #endregion
 
-        SteamServer()
+        public SteamServer()
         {
             m_CallbackLogonSuccess = Callback<SteamServersConnected_t>.CreateGameServer(OnLogonSuccess);
             m_CallbackLogonFailure = Callback<SteamServerConnectFailure_t>.CreateGameServer(OnLogonFailure);
@@ -78,52 +78,52 @@ namespace TinyHalflifeServer.SteamServer
             m_CallbackGSPolicyResponse = Callback<GSPolicyResponse_t>.CreateGameServer(OnGsPolicyResponse);
             m_CallbackValidateAuthTicketResponse = Callback<ValidateAuthTicketResponse_t>.CreateGameServer(OnValidateAuthTicketResponse);
         }
-        bool BSecure()
+        public bool BSecure()
         {
             return SteamGameServer.BSecure();
         }
-        bool BIsActive()
+        public bool BIsActive()
         {
             return m_eServerMode >= EServerMode.eServerModeNoAuthentication;
         }
-        bool BLanOnly()
+        public bool BLanOnly()
         {
             return m_eServerMode == EServerMode.eServerModeNoAuthentication;
         }
-        bool BWantsSecure()
+        public bool BWantsSecure()
         {
             return m_eServerMode == EServerMode.eServerModeAuthenticationAndSecure;
         }
-        bool BLoggedOn()
+        public bool BLoggedOn()
         {
             return SteamGameServer.BLoggedOn();
         }
-        CSteamID GetGSSteamID()
+        public CSteamID GetGSSteamID()
         {
             return m_SteamIDGS;
         }
-        bool BHasLogonResult()
+        public bool BHasLogonResult()
         {
             return m_bLogOnResult;
         }
-        void LogOnAnonymous()
+        public void LogOnAnonymous()
         {
             SteamGameServer.LogOnAnonymous();
         }
-        UInt16 GetQueryPort()
+        public UInt16 GetQueryPort()
         {
             return m_QueryPort;
         }
-        long GetPublicIP()
+        public long GetPublicIP()
         {
             return SteamGameServer.GetPublicIP().ToIPAddress().Address;
         }
-        string GetAccountToken()
+        public string GetAccountToken()
         {
             return m_sAccountToken;
         }
 
-        void InitServer(UInt16 port, string appid, string version, bool enablevac)
+        public void InitServer(UInt16 port, string appid, string version, bool enablevac)
         {
             if (enablevac)
                 m_eServerMode = EServerMode.eServerModeAuthenticationAndSecure;
@@ -144,8 +144,65 @@ namespace TinyHalflifeServer.SteamServer
 
             m_bInitialized = true;
         }
+        public void LogOn()
+        {
+            switch (m_eServerMode)
+            {
+                case EServerMode.eServerModeNoAuthentication:
+                    Logger.Log("Initializing Steam libraries for LAN server");
+                    break;
+                case EServerMode.eServerModeAuthentication:
+                    Logger.Log("Initializing Steam libraries for INSECURE Internet server.  Authentication and VAC not requested.");
+                    break;
+                case EServerMode.eServerModeAuthenticationAndSecure:
+                    Logger.Log("Initializing Steam libraries for secure Internet server");
+                    break;
+                default:
+                    Logger.Log("Bogus eServermode {mode}!", m_eServerMode);
+                    Logger.Log("Bogus server mode?!");
+                    break;
+            }
 
-        void OnValidateAuthTicketResponse(ValidateAuthTicketResponse_t pValidateAuthTicketResponse)
+            if (string.IsNullOrWhiteSpace(m_sAccountToken))
+            {
+                Logger.Warn("****************************************************\n");
+                Logger.Warn("*                                                  *\n");
+                Logger.Warn("*  No Steam account token was specified.           *\n");
+                Logger.Warn("*  Logging into anonymous game server account.     *\n");
+                Logger.Warn("*  Connections will be restricted to LAN only.     *\n");
+                Logger.Warn("*                                                  *\n");
+                Logger.Warn("*  To create a game server account go to           *\n");
+                Logger.Warn("*  http://steamcommunity.com/dev/managegameservers *\n");
+                Logger.Warn("*                                                  *\n");
+                Logger.Warn("****************************************************\n");
+                SteamGameServer.LogOnAnonymous();
+            }
+            else
+            {
+                Logger.Log("Logging into Steam gameserver account with logon token {token}\n", m_sAccountToken);
+                SteamGameServer.LogOn(m_sAccountToken);
+            }
+
+            Logger.Log("Waiting for logon result response, this may take a while...\n");
+
+            uint retry = 0;
+            while (!m_bLogOnResult)
+            {
+                if (retry++ > 60)
+                {
+                    Logger.Log("Can't logon to steam game server after 60 retries!\n");
+                    break;
+                }
+                Thread.Sleep(1000);
+                GameServer.RunCallbacks();
+            }
+        }
+        public void SetAccountToken(string token)
+        {
+            m_sAccountToken = token;
+        }
+
+        public void OnValidateAuthTicketResponse(ValidateAuthTicketResponse_t pValidateAuthTicketResponse)
         {
             Logger.Log("GC response the result of validation of the ticket [SteamID: {steamid}]", pValidateAuthTicketResponse.m_SteamID.GetUnAccountInstance());
             AuthHolder.GetAuthHolder().SetAuth(pValidateAuthTicketResponse.m_SteamID.GetUnAccountInstance(), pValidateAuthTicketResponse.m_eAuthSessionResponse);
@@ -166,13 +223,13 @@ namespace TinyHalflifeServer.SteamServer
             };
             Logger.Log("Auth response: {response}({reason})", pValidateAuthTicketResponse.m_eAuthSessionResponse, reason);
         }
-        void OnGsPolicyResponse(GSPolicyResponse_t pPolicyResponse)
+        public void OnGsPolicyResponse(GSPolicyResponse_t pPolicyResponse)
         {
             if (!BIsActive())
                 return;
             Logger.Log("VAC secure mode is {status}", SteamGameServer.BSecure() ? "activated" : "disabled");
         }
-        void OnLogonSuccess(SteamServersConnected_t pLogonSuccess)
+        public void OnLogonSuccess(SteamServersConnected_t pLogonSuccess)
         {
             if(!BIsActive())
                 return ;
@@ -201,7 +258,7 @@ namespace TinyHalflifeServer.SteamServer
             }
             Logger.Log("Gameserver logged on to Steam, assigned identity steamid:{steamid}", m_SteamIDGS.GetUnAccountInstance());
         }
-        void OnLogonFailure(SteamServerConnectFailure_t pLogonFailure)
+        public void OnLogonFailure(SteamServerConnectFailure_t pLogonFailure)
         {
             if (!BIsActive())
                 return;
@@ -253,7 +310,7 @@ namespace TinyHalflifeServer.SteamServer
             }
             m_bLogOnResult = true;
         }
-        void OnLoggedOff(SteamServersDisconnected_t pLoggedOff)
+        public void OnLoggedOff(SteamServersDisconnected_t pLoggedOff)
         {
             if (!BLanOnly())
             {
