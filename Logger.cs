@@ -2,6 +2,17 @@
 {
     internal class Logger
     {
+        public static void Debug(string message, params object?[] arg)
+        {
+            if (true)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("debug: ");
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Write(message, arg);
+                Console.Write("\n");
+            }
+        }
         public static void Log(string message, params object?[] arg)
         {
             Console.ForegroundColor = ConsoleColor.Green;

@@ -1,6 +1,7 @@
 ﻿using Steamworks;
 using TinyHalflifeServer.A2S;
 using TinyHalflifeServer.Steam;
+using TinyHalflifeServer.UDP;
 
 namespace TinyHalflifeServer
 {
@@ -8,6 +9,7 @@ namespace TinyHalflifeServer
     {
         private SteamServer m_SteamServerInfo = new();
         private ServerInfo m_ServerInfo = new();
+        private GameUDPServer m_UdpServer;
         private Task m_TaskRunFrame;
         public void Initialize()
         {
@@ -66,6 +68,7 @@ namespace TinyHalflifeServer
 			        asio::co_spawn(g_IoContext, RunFrame(), asio::detached);
 			        asio::co_spawn(g_IoContext, PrintAuthedCount(), asio::detached);
                  */
+                m_UdpServer = new(Program.Config.Port, m_ServerInfo);
                 m_TaskRunFrame = new(() =>
                 {
                     while (true)
@@ -73,7 +76,7 @@ namespace TinyHalflifeServer
                         GameServer.RunCallbacks();
                         SendUpdatedServerDetails();
                         SteamGameServer.SetAdvertiseServerActive(true);
-                        Task.Delay(500);
+                        Thread.Sleep(500);
                     }
                 });
             }
@@ -82,6 +85,7 @@ namespace TinyHalflifeServer
         public void StartRun()
         {
             m_TaskRunFrame.Start();
+            m_UdpServer.Start();
         }
 
         public void Frame()

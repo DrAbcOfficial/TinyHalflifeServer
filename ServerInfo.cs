@@ -96,13 +96,15 @@
         bool m_ServerVacStatus = false;
         uint m_ServerNumFakeClients = 0;
         #endregion
-        byte[] RenderA2SInfoRespond()
+        public byte[] RenderA2SInfoRespond()
         {
             List<byte> buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
+                    // Nonsense Prefix
+                    bw.Write((long)0xFFFFFFFF);
                     // Header	byte	Always equal to 'm' (0x6D)
                     bw.Write((byte)0x6D);
                     //Address	string	IP address and port of the server.
@@ -182,20 +184,22 @@
                 }
                 ms.ToArray().CopyTo(buffer.ToArray(), 0);
             }
-            return buffer.ToArray();
+            return [.. buffer];
         }
         #endregion
         #region A2S_PLAYER 
         List<PlayerInfo> m_ServerPlayers = [];
         public PlayerInfo GetPlayerInfo(int index) { return m_ServerPlayers[index]; }
-        public List<PlayerInfo> GetPlayerInfos() {  return m_ServerPlayers; }
-        byte[] RenderA2SPlayerRespond()
+        public List<PlayerInfo> GetPlayerInfos() { return m_ServerPlayers; }
+        public byte[] RenderA2SPlayerRespond()
         {
             List<byte> buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
+                    // Nonsense Prefix
+                    bw.Write((long)0xFFFFFFFF);
                     //Header	byte	Always equal to 'D' (0x44)
                     bw.Write((byte)0x44);
                     //Players	byte	Number of players whose information was gathered.
@@ -217,19 +221,21 @@
                 }
                 ms.ToArray().CopyTo(buffer.ToArray(), 0);
             }
-            return buffer.ToArray();
+            return [.. buffer];
         }
         #endregion
         #region A2S_RULES
         List<RulesInfo> m_RulesInfos = [];
         public List<RulesInfo> GetRulesInfos() { return m_RulesInfos; }
-        byte[] RenderA2SRulesRespond()
+        public byte[] RenderA2SRulesRespond()
         {
             List<byte> buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
+                    // Nonsense Prefix
+                    bw.Write((long)0xFFFFFFFF);
                     //Header	byte	Always equal to 'E' (0x45)
                     bw.Write((byte)0x45);
                     //Rules	short	Number of rules in the response.
@@ -245,17 +251,19 @@
                 }
                 ms.ToArray().CopyTo(buffer.ToArray(), 0);
             }
-            return buffer.ToArray();
+            return [.. buffer];
         }
         #endregion
         #region A2A_PING
-        byte[] RenderA2APingRespond()
+        public byte[] RenderA2APingRespond()
         {
             List<byte> buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
+                    // Nonsense Prefix
+                    bw.Write((long)0xFFFFFFFF);
                     //Header	byte	'j' (0x6A)
                     bw.Write((byte)0x6A);
                     //Payload	string	Null
@@ -263,17 +271,19 @@
                 }
                 ms.ToArray().CopyTo(buffer.ToArray(), 0);
             }
-            return buffer.ToArray();
+            return [.. buffer];
         }
         #endregion
         #region A2S_SERVERQUERY_GETCHALLENGE
-        byte[] RenderA2SServerQueryGetChallengeRespond()
+        public byte[] RenderA2SServerQueryGetChallengeRespond()
         {
             List<byte> buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
+                    // Nonsense Prefix
+                    bw.Write((long)0xFFFFFFFF);
                     //Header	byte	Should be equal to 'A' (0x41).
                     bw.Write((byte)0x41);
                     //Challenge	long	The challenge number to use.
@@ -281,7 +291,7 @@
                 }
                 ms.ToArray().CopyTo(buffer.ToArray(), 0);
             }
-            return buffer.ToArray();
+            return [.. buffer];
         }
         #endregion
     }

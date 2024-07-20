@@ -45,8 +45,8 @@
     }
     public class Config
     {
-        public string AppId = "276060";
-        public string Version = "5.26";
+        public string AppId = "svencoop";
+        public string Version = "5.0.1.7";
         public string GSLT = "";
         public int Port = 27015;
         public JsonMirror RDIP = new();
