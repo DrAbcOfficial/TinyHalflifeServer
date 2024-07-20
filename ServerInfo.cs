@@ -1,4 +1,7 @@
-﻿namespace TinyHalflifeServer.A2S
+﻿using System;
+using System.Text;
+
+namespace TinyHalflifeServer.A2S
 {
     //Fake A2S builder
     internal class ModInfo
@@ -98,25 +101,30 @@
         #endregion
         public byte[] RenderA2SInfoRespond()
         {
-            List<byte> buffer = [];
+            byte[] buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
                     // Nonsense Prefix
-                    bw.Write((long)0xFFFFFFFF);
+                    bw.Write((uint)0xFFFFFFFF);
                     // Header	byte	Always equal to 'm' (0x6D)
                     bw.Write((byte)0x6D);
                     //Address	string	IP address and port of the server.
-                    bw.Write(m_ServerAddress);
+                    bw.Write(Encoding.UTF8.GetBytes(m_ServerAddress));
+                    bw.Write((byte)0x00);
                     //Name	string	Name of the server.
-                    bw.Write(m_ServerName);
+                    bw.Write(Encoding.UTF8.GetBytes(m_ServerName));
+                    bw.Write((byte)0x00);
                     //Map	string	Map the server has currently loaded.
-                    bw.Write(m_ServerMap);
+                    bw.Write(Encoding.UTF8.GetBytes(m_ServerMap));
+                    bw.Write((byte)0x00);
                     //Folder	string	Name of the folder containing the game files.
-                    bw.Write(m_ServerGameFolder);
+                    bw.Write(Encoding.UTF8.GetBytes(m_ServerGameFolder));
+                    bw.Write((byte)0x00);
                     //Game	string	Full name of the game.
-                    bw.Write(m_ServerDescription);
+                    bw.Write(Encoding.UTF8.GetBytes(m_ServerDescription));
+                    bw.Write((byte)0x00);
                     //Players	byte	Number of players on the server.
                     bw.Write((byte)m_ServerPlayers.Count);
                     //Max. Players	byte	Maximum number of players the server reports it can hold.
@@ -155,9 +163,11 @@
                         bw.Write((byte)0x01);
                         //These fields are only present in the response if "Mod" is 1:
                         //Link	string	URL to mod website.
-                        bw.Write(m_ServerModInfo.m_ModUrl);
+                        bw.Write(Encoding.UTF8.GetBytes(m_ServerModInfo.m_ModUrl));
+                        bw.Write((byte)0x00);
                         //Download Link	string	URL to download the mod.
-                        bw.Write(m_ServerModInfo.m_ModDownloadUrl);
+                        bw.Write(Encoding.UTF8.GetBytes(m_ServerModInfo.m_ModDownloadUrl));
+                        bw.Write((byte)0x00);
                         //NULL	byte	NULL byte (0x00)
                         bw.Write((byte)0x00);
                         //Version	long	Version of mod installed on server.
@@ -182,9 +192,9 @@
                     //Bots	byte	Number of bots on the server.
                     bw.Write((byte)m_ServerNumFakeClients);
                 }
-                ms.ToArray().CopyTo(buffer.ToArray(), 0);
+                buffer = [.. ms.ToArray()];
             }
-            return [.. buffer];
+            return buffer;
         }
         #endregion
         #region A2S_PLAYER 
@@ -193,13 +203,13 @@
         public List<PlayerInfo> GetPlayerInfos() { return m_ServerPlayers; }
         public byte[] RenderA2SPlayerRespond()
         {
-            List<byte> buffer = [];
+            byte[] buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
                     // Nonsense Prefix
-                    bw.Write((long)0xFFFFFFFF);
+                    bw.Write((uint)0xFFFFFFFF);
                     //Header	byte	Always equal to 'D' (0x44)
                     bw.Write((byte)0x44);
                     //Players	byte	Number of players whose information was gathered.
@@ -211,7 +221,8 @@
                         //Index	byte	Index of player chunk starting from 0.
                         bw.Write((byte)index);
                         //Name	string	Name of the player.
-                        bw.Write(info.m_Name);
+                        bw.Write(Encoding.UTF8.GetBytes(info.m_Name));
+                        bw.Write((byte)0x00);
                         //Score	long	Player's score (usually "frags" or "kills".)
                         bw.Write(info.m_Score);
                         //Duration	float	Time (in seconds) player has been connected to the server.
@@ -219,9 +230,9 @@
                         index++;
                     }
                 }
-                ms.ToArray().CopyTo(buffer.ToArray(), 0);
+                buffer = [.. ms.ToArray()];
             }
-            return [.. buffer];
+            return buffer;
         }
         #endregion
         #region A2S_RULES
@@ -229,13 +240,13 @@
         public List<RulesInfo> GetRulesInfos() { return m_RulesInfos; }
         public byte[] RenderA2SRulesRespond()
         {
-            List<byte> buffer = [];
+            byte[] buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
                     // Nonsense Prefix
-                    bw.Write((long)0xFFFFFFFF);
+                    bw.Write((uint)0xFFFFFFFF);
                     //Header	byte	Always equal to 'E' (0x45)
                     bw.Write((byte)0x45);
                     //Rules	short	Number of rules in the response.
@@ -244,54 +255,56 @@
                     foreach (RulesInfo info in m_RulesInfos)
                     {
                         //Name	string	Name of the rule.
-                        bw.Write(info.m_Name);
+                        bw.Write(Encoding.UTF8.GetBytes(info.m_Name));
+                        bw.Write((byte)0x00);
                         //Value	string	Value of the rule.
-                        bw.Write(info.m_Value);
+                        bw.Write(Encoding.UTF8.GetBytes(info.m_Value));
+                        bw.Write((byte)0x00);
                     }
                 }
-                ms.ToArray().CopyTo(buffer.ToArray(), 0);
+                buffer = [.. ms.ToArray()];
             }
-            return [.. buffer];
+            return buffer;
         }
         #endregion
         #region A2A_PING
         public byte[] RenderA2APingRespond()
         {
-            List<byte> buffer = [];
+            byte[] buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
                     // Nonsense Prefix
-                    bw.Write((long)0xFFFFFFFF);
+                    bw.Write((uint)0xFFFFFFFF);
                     //Header	byte	'j' (0x6A)
                     bw.Write((byte)0x6A);
                     //Payload	string	Null
-                    bw.Write("");
+                    bw.Write((byte)0x00);
                 }
-                ms.ToArray().CopyTo(buffer.ToArray(), 0);
+                buffer = [.. ms.ToArray()];
             }
-            return [.. buffer];
+            return buffer;
         }
         #endregion
         #region A2S_SERVERQUERY_GETCHALLENGE
         public byte[] RenderA2SServerQueryGetChallengeRespond()
         {
-            List<byte> buffer = [];
+            byte[] buffer = [];
             using (MemoryStream ms = new())
             {
                 using (BinaryWriter bw = new(ms))
                 {
                     // Nonsense Prefix
-                    bw.Write((long)0xFFFFFFFF);
+                    bw.Write((uint)0xFFFFFFFF);
                     //Header	byte	Should be equal to 'A' (0x41).
                     bw.Write((byte)0x41);
                     //Challenge	long	The challenge number to use.
                     bw.Write((long)0xFFFFFFFF);
                 }
-                ms.ToArray().CopyTo(buffer.ToArray(), 0);
+                buffer = [.. ms.ToArray()];
             }
-            return [.. buffer];
+            return buffer;
         }
         #endregion
     }
