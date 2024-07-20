@@ -6,7 +6,7 @@ using TinyHalflifeServer.A2S;
 
 namespace TinyHalflifeServer.UDP
 {
-    internal class GameUDPServer : UdpServer
+    internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.Any, port)
     {
         private enum A2S_Type
         {
@@ -16,18 +16,9 @@ namespace TinyHalflifeServer.UDP
             Ping,
             GetChallenge
         }
-        private ServerInfo _serverInfo;
-        public GameUDPServer(int port, ServerInfo info) : base(IPAddress.Any, port)
-        {
-            _serverInfo = info;
-        }
-        protected override void OnStarted()
-        {
-            // Start receive datagrams
-            ReceiveAsync();
-        }
+        private readonly ServerInfo _serverInfo = info;
 
-        private void A2SRespond(EndPoint endpoint, byte[] buffer, A2S_Type type)
+        private void A2SRespond(EndPoint endpoint, A2S_Type type)
         {
             Logger.Debug("Responding ip:{0}, type:{1}", endpoint.ToString(), type);
             byte[] respond = type switch
@@ -43,8 +34,7 @@ namespace TinyHalflifeServer.UDP
             SendAsync(endpoint, respond, 0, respond.Length);
             Logger.Debug("Responded!");
         }
-
-        private void S2A(EndPoint endpoint, byte[] buffer)
+        private void S2ARequest(EndPoint endpoint, byte[] buffer)
         {
             using MemoryStream ms = new(buffer);
             using BinaryReader br = new(ms);
@@ -61,7 +51,7 @@ namespace TinyHalflifeServer.UDP
                         string paylod = Encoding.UTF8.GetString(br.ReadBytes(20));
                         //int challenge = br.ReadInt32();
                         Logger.Debug("S2A_INFO paylod: {0}", paylod);
-                        A2SRespond(endpoint, buffer, A2S_Type.Info);
+                        A2SRespond(endpoint, A2S_Type.Info);
                         break;
                     }
                 //U A2S_PLAYER
@@ -70,7 +60,7 @@ namespace TinyHalflifeServer.UDP
                         Logger.Debug("S2A_PLAYER");
                         Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
                         //int challenge = br.ReadInt32();
-                        A2SRespond(endpoint, buffer, A2S_Type.Player);
+                        A2SRespond(endpoint, A2S_Type.Player);
                         break;
                     }
                 //V A2S_RULES
@@ -79,7 +69,7 @@ namespace TinyHalflifeServer.UDP
                         Logger.Debug("S2A_RULES");
                         Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
                         //int challenge = br.ReadInt32();
-                        A2SRespond(endpoint, buffer, A2S_Type.Rules);
+                        A2SRespond(endpoint, A2S_Type.Rules);
                         break;
                     }
                 //i A2A_PING
@@ -87,7 +77,7 @@ namespace TinyHalflifeServer.UDP
                     {
                         Logger.Debug("A2A_PING");
                         Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
-                        A2SRespond(endpoint, buffer, A2S_Type.Ping);
+                        A2SRespond(endpoint, A2S_Type.Ping);
                         break;
                     }
                 //W A2S_SERVERQUERY_GETCHALLENGE
@@ -95,7 +85,7 @@ namespace TinyHalflifeServer.UDP
                     {
                         Logger.Debug("S2A_SERVERQUERY_GETCHALLENGE");
                         Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
-                        A2SRespond(endpoint, buffer, A2S_Type.GetChallenge);
+                        A2SRespond(endpoint, A2S_Type.GetChallenge);
                         break;
                     }
                 default:
@@ -108,6 +98,11 @@ namespace TinyHalflifeServer.UDP
             }
         }
 
+        protected override void OnStarted()
+        {
+            // Start receive datagrams
+            ReceiveAsync();
+        }
         protected override void OnReceived(EndPoint endpoint, byte[] buffer, long offset, long size)
         {
             byte[] data = new byte[size];
@@ -115,7 +110,7 @@ namespace TinyHalflifeServer.UDP
             //S2A request
             if (data[0] == 0xFF && data[1] == 0xFF && data[2] == 0xFF && data[3] == 0xFF)
             {
-                S2A(endpoint, data);
+                S2ARequest(endpoint, data);
             }
             else
             {

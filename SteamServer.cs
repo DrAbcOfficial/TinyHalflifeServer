@@ -3,15 +3,15 @@ using System.Net;
 
 namespace TinyHalflifeServer.Steam
 {
-    public struct SteamAuthInfo(UInt64 steamId, EAuthSessionResponse code)
+    public struct SteamAuthInfo(ulong steamId, EAuthSessionResponse code)
     {
-        public UInt64 m_SteamID = steamId;
+        public ulong m_SteamID = steamId;
         public EAuthSessionResponse m_AuthCode = code;
     }
     public class AuthHolder
     {
-        private List<SteamAuthInfo> m_AuthList = [];
-        public void SetAuth(UInt64 steamid, EAuthSessionResponse code)
+        readonly private List<SteamAuthInfo> m_AuthList = [];
+        public void SetAuth(ulong steamid, EAuthSessionResponse code)
         {
             bool found = false;
             for (int i = 0; i < m_AuthList.Count; i++)
@@ -30,7 +30,7 @@ namespace TinyHalflifeServer.Steam
             m_AuthList.Add(new SteamAuthInfo(steamid, code));
         }
 
-        static AuthHolder g_AuthHolder = new AuthHolder();
+        readonly static AuthHolder g_AuthHolder = new();
         public static AuthHolder GetAuthHolder()
         {
             return g_AuthHolder;
@@ -60,10 +60,10 @@ namespace TinyHalflifeServer.Steam
 
 
         // The port that we are listening for queries on.
-        protected UInt32 m_unIP;
-        protected UInt16 m_usPort;
-        protected UInt16 m_QueryPort;
-        protected string m_sAccountToken;
+        protected uint m_unIP;
+        protected ushort m_usPort;
+        protected ushort m_QueryPort;
+        protected string m_sAccountToken = "";
         #endregion
 
         public SteamServer()
@@ -132,10 +132,6 @@ namespace TinyHalflifeServer.Steam
             else
                 Logger.Log("[SteamGameServer] Initialize Steam Game Server success.");
 
-            //goldsrc game dont need heartbeat
-            //if (!Init())
-            //    Logger.Error("[CSteamGameServerAPIContext] initialize failed!");
-
             SteamGameServer.SetProduct(Program.Config.Product);
             SteamGameServer.SetModDir(Program.Config.ServerInfo.GameFolder);
             SteamGameServer.SetServerName(Program.Config.ServerInfo.Name);
@@ -147,6 +143,11 @@ namespace TinyHalflifeServer.Steam
             SteamGameServer.SetDedicatedServer(true);
 
             m_bInitialized = true;
+        }
+
+        public void Stop()
+        {
+            GameServer.Shutdown();
         }
         public void LogOn()
         {

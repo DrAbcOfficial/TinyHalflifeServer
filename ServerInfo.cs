@@ -5,6 +5,7 @@ using System.Text;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Threading.Channels;
 using Steamworks;
+using System.Collections.Generic;
 
 namespace TinyHalflifeServer.A2S
 {
@@ -101,7 +102,7 @@ namespace TinyHalflifeServer.A2S
         ServerOS m_ServerOS = ServerOS.Other;
         bool m_ServerPassworded = false;
         bool m_ServerModed = false;
-        ModInfo m_ServerModInfo = new();
+        readonly ModInfo m_ServerModInfo = new();
         bool m_ServerVacStatus = false;
         uint m_ServerNumFakeClients = 0;
         #endregion
@@ -277,7 +278,7 @@ namespace TinyHalflifeServer.A2S
         }
         #endregion
         #region A2S_PLAYER 
-        List<PlayerInfo> m_ServerPlayers = [];
+        readonly List<PlayerInfo> m_ServerPlayers = [];
         public PlayerInfo GetPlayerInfo(int index) { return m_ServerPlayers[index]; }
         public List<PlayerInfo> GetPlayerInfos() { return m_ServerPlayers; }
         public byte[] RenderA2SPlayerRespond()
@@ -315,7 +316,7 @@ namespace TinyHalflifeServer.A2S
         }
         #endregion
         #region A2S_RULES
-        List<RulesInfo> m_RulesInfos = [];
+        readonly List<RulesInfo> m_RulesInfos = [];
         public List<RulesInfo> GetRulesInfos() { return m_RulesInfos; }
         public byte[] RenderA2SRulesRespond()
         {

@@ -7,11 +7,12 @@ namespace TinyHalflifeServer
 {
     public class Server
     {
-        private SteamServer m_SteamServerInfo = new();
-        private ServerInfo m_ServerInfo = new();
+        private readonly SteamServer m_SteamServerInfo = new();
+        private readonly ServerInfo m_ServerInfo = new();
         private GameUDPServer m_UdpServer;
         private Task m_TaskRunFrame;
-        public void Initialize()
+
+        public Server()
         {
             m_SteamServerInfo.InitServer((ushort)Program.Config.Port, Program.Config.Version, Program.Config.ServerInfo.VAC);
             m_SteamServerInfo.SetAccountToken(Program.Config.GSLT);
@@ -51,7 +52,7 @@ namespace TinyHalflifeServer
                 list.Add(info);
             }
             List<RulesInfo> rules = m_ServerInfo.GetRulesInfos();
-            foreach(var ri in Program.Config.ServerInfo.Rules)
+            foreach (var ri in Program.Config.ServerInfo.Rules)
             {
                 RulesInfo info = new()
                 {
@@ -60,14 +61,8 @@ namespace TinyHalflifeServer
                 };
                 rules.Add(info);
             }
-
             if (m_SteamServerInfo.BLoggedOn())
             {
-                /*
-                    asio::co_spawn(g_IoContext, PrepareListenServer(), asio::detached);
-			        asio::co_spawn(g_IoContext, RunFrame(), asio::detached);
-			        asio::co_spawn(g_IoContext, PrintAuthedCount(), asio::detached);
-                 */
                 m_UdpServer = new(Program.Config.Port, m_ServerInfo);
                 m_TaskRunFrame = new(() =>
                 {
@@ -88,15 +83,17 @@ namespace TinyHalflifeServer
             m_UdpServer.Start();
         }
 
-        public void Frame()
+        public void Stop()
         {
-            Thread.Sleep(1000);
+            m_UdpServer.Stop();
+            m_TaskRunFrame.Dispose();
+            m_SteamServerInfo.Stop();
         }
 
         private void SendUpdatedServerDetails()
         {
             SteamGameServer.SetProduct(Program.Config.Product);
-            //SteamGameServer.SetModDir(Program.Config.ServerInfo.GameFolder);
+            SteamGameServer.SetModDir(Program.Config.ServerInfo.GameFolder);
             SteamGameServer.SetServerName(Program.Config.ServerInfo.Name);
             SteamGameServer.SetGameDescription(Program.Config.ServerInfo.Description);
             SteamGameServer.SetMapName(Program.Config.ServerInfo.Map);
