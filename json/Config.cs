@@ -46,7 +46,7 @@
     public class Config
     {
         public string AppId = "276060";
-        public string Version = "276060";
+        public string Version = "5.26";
         public string GSLT = "";
         public int Port = 27015;
         public JsonMirror RDIP = new();

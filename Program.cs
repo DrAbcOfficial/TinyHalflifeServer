@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Steamworks;
 using TinyHalflifeServer.Json;
 
 namespace TinyHalflifeServer
@@ -20,6 +21,18 @@ namespace TinyHalflifeServer
                 string json = JsonConvert.SerializeObject(Config);
                 File.WriteAllText(configPath, json);
             }
+
+            SteamAPI.Init();
+
+            Server server = new ();
+            server.Initialize();
+            server.StartRun();
+            while (true)
+            {
+                server.Frame();
+            }
+
+            SteamAPI.Shutdown();
         }
     }
 }

@@ -65,9 +65,6 @@ namespace TinyHalflifeServer.Steam
         protected UInt16 m_QueryPort;
         protected string m_sAccountToken;
         #endregion
-        #region Const
-        const ushort STEAMGAMESERVER_QUERY_PORT_SHARED = 0xffff;
-        #endregion
 
         public SteamServer()
         {
@@ -130,7 +127,7 @@ namespace TinyHalflifeServer.Steam
             else
                 m_eServerMode = EServerMode.eServerModeAuthentication;
 
-            if (!GameServer.Init(0, port, STEAMGAMESERVER_QUERY_PORT_SHARED, m_eServerMode, version))
+            if (!GameServer.Init(0, port, Constants.STEAMGAMESERVER_QUERY_PORT_SHARED, m_eServerMode, version))
                 Logger.Error("[SteamGameServer] Unable to initialize Steam Game Server.");
             else
                 Logger.Log("[SteamGameServer] Initialize Steam Game Server success.");

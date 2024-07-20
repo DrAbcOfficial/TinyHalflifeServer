@@ -47,8 +47,6 @@
         public void SetServerGameFolder(string serverGameFolder) { m_ServerGameFolder = serverGameFolder; }
         public string GetServerDescription() { return m_ServerDescription; }
         public void SetServerDescription(string serverDescription) { m_ServerDescription = serverDescription; }
-        public uint GetServerNumClients() { return m_ServerNumClients; }
-        public void SerServerNumClients(uint clients) { m_ServerNumClients = clients; }
         public uint GetServerMaxNumClients() { return m_ServerMaxClients; }
         public void SetServerMaxNumClients(uint clients) { m_ServerMaxClients = clients; }
         public uint GetServerProtocol() { return m_ServerProtocol; }
@@ -88,7 +86,6 @@
         string m_ServerMap = "";
         string m_ServerGameFolder = "";
         string m_ServerDescription = "";
-        uint m_ServerNumClients = 0;
         uint m_ServerMaxClients = 0;
         uint m_ServerProtocol = 0;
         ServerType m_ServerType = ServerType.Other;
@@ -119,7 +116,7 @@
                     //Game	string	Full name of the game.
                     bw.Write(m_ServerDescription);
                     //Players	byte	Number of players on the server.
-                    bw.Write((byte)m_ServerNumClients);
+                    bw.Write((byte)m_ServerPlayers.Count);
                     //Max. Players	byte	Maximum number of players the server reports it can hold.
                     bw.Write((byte)m_ServerMaxClients);
                     //Protocol	byte	Protocol version used by the server.
