@@ -1,34 +1,38 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TinyHalflifeServer
+﻿namespace TinyHalflifeServer
 {
     internal class Logger
     {
-        private static ILogger logger = LoggerFactory.Create(static builder =>
-        {
-            builder.AddConsole();
-        }).CreateLogger<Logger>();
-
         public static void Log(string message, params object?[] arg)
         {
-            logger.LogInformation(message, arg);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("info: ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(message, arg);
+            Console.Write("\n");
         }
         public static void Warn(string message, params object?[] arg)
         {
-            logger.LogWarning(message, arg);
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("warn: ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(message, arg);
+            Console.Write("\n");
         }
         public static void Error(string message, params object?[] arg)
         {
-            logger.LogError(message, arg);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write("error: ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(message, arg);
+            Console.Write("\n");
         }
         public static void Crit(string message, params object?[] arg)
         {
-            logger.LogCritical(message, arg);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write("crit: ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(message, arg);
+            Console.Write("\n");
         }
     }
 }

@@ -1,8 +1,5 @@
 ﻿using Steamworks;
-using System.Net;
-using System.Net.Sockets;
 using TinyHalflifeServer.A2S;
-using TinyHalflifeServer.Json;
 using TinyHalflifeServer.Steam;
 
 namespace TinyHalflifeServer
@@ -18,16 +15,8 @@ namespace TinyHalflifeServer
             m_SteamServerInfo.SetAccountToken(Program.Config.GSLT);
             m_SteamServerInfo.LogOn();
 
-            string hostName = Dns.GetHostName();
-            IPAddress[] ipAddresses = Dns.GetHostAddresses(hostName);
-            foreach (IPAddress ipAddress in ipAddresses)
-            {
-                if (ipAddress.AddressFamily == AddressFamily.InterNetwork) // 只获取IPv4地址
-                {
-                    m_ServerInfo.SetServerAddress($"{ipAddress}:{Program.Config.Port}");
-                    break;
-                }
-            }
+            //A2S Info
+            m_ServerInfo.SetServerAddress($"{SteamGameServer.GetPublicIP().ToIPAddress()}:{Program.Config.Port}");
             m_ServerInfo.SetServerName(Program.Config.ServerInfo.Name);
             m_ServerInfo.SetServerMap(Program.Config.ServerInfo.Map);
             m_ServerInfo.SetServerGameFolder(Program.Config.ServerInfo.GameFolder);

@@ -137,7 +137,9 @@ namespace TinyHalflifeServer.Steam
             //    Logger.Error("[CSteamGameServerAPIContext] initialize failed!");
 
             SteamGameServer.SetProduct(appid);
+            SteamGameServer.SetModDir(Program.Config.ServerInfo.GameFolder);
             SteamGameServer.SetDedicatedServer(true);
+            SteamGameServer.SetGameDescription(Program.Config.ServerInfo.Description);
 
             m_bInitialized = true;
         }
@@ -155,39 +157,39 @@ namespace TinyHalflifeServer.Steam
                     Logger.Log("Initializing Steam libraries for secure Internet server");
                     break;
                 default:
-                    Logger.Log("Bogus eServermode {mode}!", m_eServerMode);
+                    Logger.Log("Bogus eServermode {0}!", m_eServerMode);
                     Logger.Log("Bogus server mode?!");
                     break;
             }
 
             if (string.IsNullOrWhiteSpace(m_sAccountToken))
             {
-                Logger.Warn("****************************************************\n");
-                Logger.Warn("*                                                  *\n");
-                Logger.Warn("*  No Steam account token was specified.           *\n");
-                Logger.Warn("*  Logging into anonymous game server account.     *\n");
-                Logger.Warn("*  Connections will be restricted to LAN only.     *\n");
-                Logger.Warn("*                                                  *\n");
-                Logger.Warn("*  To create a game server account go to           *\n");
-                Logger.Warn("*  http://steamcommunity.com/dev/managegameservers *\n");
-                Logger.Warn("*                                                  *\n");
-                Logger.Warn("****************************************************\n");
+                Logger.Warn("****************************************************");
+                Logger.Warn("*                                                  *");
+                Logger.Warn("*  No Steam account token was specified.           *");
+                Logger.Warn("*  Logging into anonymous game server account.     *");
+                Logger.Warn("*  Connections will be restricted to LAN only.     *");
+                Logger.Warn("*                                                  *");
+                Logger.Warn("*  To create a game server account go to           *");
+                Logger.Warn("*  http://steamcommunity.com/dev/managegameservers *");
+                Logger.Warn("*                                                  *");
+                Logger.Warn("****************************************************");
                 SteamGameServer.LogOnAnonymous();
             }
             else
             {
-                Logger.Log("Logging into Steam gameserver account with logon token {token}\n", m_sAccountToken);
+                Logger.Log("Logging into Steam gameserver account with logon token {0}", m_sAccountToken);
                 SteamGameServer.LogOn(m_sAccountToken);
             }
 
-            Logger.Log("Waiting for logon result response, this may take a while...\n");
+            Logger.Log("Waiting for logon result response, this may take a while...");
 
             uint retry = 0;
             while (!m_bLogOnResult)
             {
                 if (retry++ > 60)
                 {
-                    Logger.Log("Can't logon to steam game server after 60 retries!\n");
+                    Logger.Log("Can't logon to steam game server after 60 retries!");
                     break;
                 }
                 Thread.Sleep(1000);
@@ -201,7 +203,7 @@ namespace TinyHalflifeServer.Steam
 
         public void OnValidateAuthTicketResponse(ValidateAuthTicketResponse_t pValidateAuthTicketResponse)
         {
-            Logger.Log("GC response the result of validation of the ticket [SteamID: {steamid}]", pValidateAuthTicketResponse.m_SteamID.GetUnAccountInstance());
+            Logger.Log("GC response the result of validation of the ticket [SteamID: {0}]", pValidateAuthTicketResponse.m_SteamID.GetUnAccountInstance());
             AuthHolder.GetAuthHolder().SetAuth(pValidateAuthTicketResponse.m_SteamID.GetUnAccountInstance(), pValidateAuthTicketResponse.m_eAuthSessionResponse);
             string reason = pValidateAuthTicketResponse.m_eAuthSessionResponse switch
             {
@@ -218,13 +220,13 @@ namespace TinyHalflifeServer.Steam
                 EAuthSessionResponse.k_EAuthSessionResponseAuthTicketNetworkIdentityFailure => "The network identity failed",
                 _ => "Unknown response",
             };
-            Logger.Log("Auth response: {response}({reason})", pValidateAuthTicketResponse.m_eAuthSessionResponse, reason);
+            Logger.Log("Auth response: {0}({1})", pValidateAuthTicketResponse.m_eAuthSessionResponse, reason);
         }
         public void OnGsPolicyResponse(GSPolicyResponse_t pPolicyResponse)
         {
             if (!BIsActive())
                 return;
-            Logger.Log("VAC secure mode is {status}", SteamGameServer.BSecure() ? "activated" : "disabled");
+            Logger.Log("VAC secure mode is {0}", SteamGameServer.BSecure() ? "activated" : "disabled");
         }
         public void OnLogonSuccess(SteamServersConnected_t pLogonSuccess)
         {
@@ -236,24 +238,24 @@ namespace TinyHalflifeServer.Steam
             }
             Logger.Log("Connection to Steam server successful");
             IPAddress ip = SteamGameServer.GetPublicIP().ToIPAddress();
-            Logger.Log("   Public IP is {status}.", ip.ToString());
+            Logger.Log("   Public IP is {0}.", ip.ToString());
 
             m_SteamIDGS = SteamGameServer.GetSteamID();
 
             if (m_SteamIDGS.BAnonGameServerAccount())
             {
-                Logger.Log("Assigned anonymous gameserver Steam ID {steamid}.", m_SteamIDGS.ToString());
+                Logger.Log("Assigned anonymous gameserver Steam ID {0}.", m_SteamIDGS.ToString());
             }
             else if(m_SteamIDGS.BPersistentGameServerAccount())
             {
-                Logger.Log("Assigned persistent gameserver Steam ID {steamid}.", m_SteamIDGS.ToString());
+                Logger.Log("Assigned persistent gameserver Steam ID {0}.", m_SteamIDGS.ToString());
             }
             else
             {
-                Logger.Warn("Assigned Steam ID {steamid}, which is of an unexpected type!", m_SteamIDGS.ToString());
+                Logger.Warn("Assigned Steam ID {0}, which is of an unexpected type!", m_SteamIDGS.ToString());
                 Logger.Warn("Unexpected steam ID type!");
             }
-            Logger.Log("Gameserver logged on to Steam, assigned identity steamid:{steamid}", m_SteamIDGS.GetUnAccountInstance());
+            Logger.Log("Gameserver logged on to Steam, assigned identity steamid:{0}", m_SteamIDGS.GetUnAccountInstance());
         }
         public void OnLogonFailure(SteamServerConnectFailure_t pLogonFailure)
         {
@@ -296,7 +298,7 @@ namespace TinyHalflifeServer.Steam
                 {
                     Logger.Crit("****************************************************");
                     Logger.Crit("*                FATAL ERROR                       *");
-                    Logger.Crit("{szFatalError}", szFatalError);
+                    Logger.Crit("{0}", szFatalError);
                     Logger.Crit("*  Double-check your sv_setsteamaccount setting.   *");
                     Logger.Crit("*                                                  *");
                     Logger.Crit("*  To create a game server account go to           *");
@@ -311,7 +313,7 @@ namespace TinyHalflifeServer.Steam
         {
             if (!BLanOnly())
             {
-                Logger.Warn("Connection to Steam servers lost.  (Result = {result})", pLoggedOff.m_eResult);
+                Logger.Warn("Connection to Steam servers lost.  (Result = {0})", pLoggedOff.m_eResult);
             }
 
             if (GetGSSteamID().BPersistentGameServerAccount())
