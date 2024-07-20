@@ -2,61 +2,57 @@
 {
     public class JsonMirror
     {
-        public bool Enable = false;
-        public string Destination = "127.0.0.1:27105";
+        public bool Enable { get; set; }
+        public string Destination { get; set; }
     }
     public class JsonModInfo
     {
-        public string Url = "github.com";
-        public string DownloadUrl = "notevenexists.com";
-        public int Version = 0;
-        public int Size = 0;
-        public int Type = 0;
-        public int DLL = 1;
+        public string Url { get; set; }
+        public string DownloadUrl { get; set; }
+        public int Version { get; set; }
+        public int Size { get; set; }
+        public int Type { get; set; }
+        public int DLL { get; set; }
     }
     public class JsonPlayerInfo
     {
-        public string Name;
-        public int Score;
-        public float Duration;
+        public string Name { get; set; }
+        public int Score { get; set; }
+        public float Duration { get; set; }
     }
     public class JsonRulesInfo
     {
-        public string Name;
-        public string Value;
+        public string Name { get; set; }
+        public string Value { get; set; }
     }
     public class JsonServerInfo
     {
-        public string Name = "Tiny Sven coop Server";
-        public string Map = "Not even exists";
-        public string GameFolder = "svencoop";
-        public string Description = "Tiny Sven Co-op";
-        public int MaxClients = 32;
-        public int Protocol = 17;
-        public int Type = 0;
-        public int OS = 0;
-        public bool Passworded = true;
-        public bool Moded = false;
-        public bool VAC = true;
-        public int FakeClients = 0;
+        public string Name { get; set; }
+        public string Map { get; set; }
+        public string GameFolder { get; set; }
+        public string Description { get; set; }
+        public int MaxClients { get; set; }
+        public int Protocol { get; set; }
+        public int Type { get; set; }
+        public int OS { get; set; }
+        public bool Passworded { get; set; }
+        public bool Moded { get; set; }
+        public bool VAC { get; set; }
+        public int FakeClients { get; set; }
         public JsonModInfo ModInfo = new();
-        public List<JsonPlayerInfo> Players = [
-            new JsonPlayerInfo(){Name = "Tiny", Score = 114514, Duration = 256.0f}
-        ];
-        public List<JsonRulesInfo> Rules = [
-            new JsonRulesInfo(){Name="coop", Value="fuck"}
-        ];
+        public List<JsonPlayerInfo> Players { get; set; }
+        public List<JsonRulesInfo> Rules { get; set; }
     }
     public class Config
     {
-        public string Product = "276060";
-        public int AppId = 225840;
-        public string Version = "5.0.1.7";
-        public string GSLT = "";
-        public int Port = 27015;
-        public bool GoldSrc = false;
-        public bool Debug = false;
-        public JsonMirror RDIP = new();
-        public JsonServerInfo ServerInfo = new();
+        public string Product { get; set; }
+        public int AppId { get; set; }
+        public string Version { get; set; }
+        public string GSLT { get; set; }
+        public int Port { get; set; }
+        public bool GoldSrc { get; set; }
+        public bool Debug { get; set; }
+        public JsonMirror RDIP { get; set; }
+        public JsonServerInfo ServerInfo { get; set; }
     }
 }

@@ -1,5 +1,8 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Drawing;
+using System.Text.Json;
 using Steamworks;
+using TinyHalflifeServer.A2S;
 using TinyHalflifeServer.Json;
 
 namespace TinyHalflifeServer
@@ -18,7 +21,47 @@ namespace TinyHalflifeServer
             }
             if(Config == null)
             {
-                Config = new();
+                Config = new()
+                {
+                    Product = "svencoop",
+                    AppId = 225840,
+                    Version = "5.0.1.7",
+                    GSLT = "",
+                    Port = 27015,
+                    GoldSrc = false,
+                    Debug = false,
+                    RDIP = new()
+                    {
+                        Enable = false,
+                        Destination = "127.0.0.1:27105"
+                    },
+                    ServerInfo = new()
+                    {
+                        Name = "Tiny Sven Server",
+                        Map = "Fanta Sea",
+                        GameFolder = "svencoop",
+                        Description = "Tiny Sven Co-op",
+                        MaxClients = 32,
+                        Protocol = 17,
+                        Type = 0,
+                        OS = 0,
+                        Passworded = true,
+                        Moded =false,
+                        VAC = true,
+                        FakeClients = 0,
+                        ModInfo = new()
+                        {
+                            Url = "github.com",
+                            DownloadUrl = "github.com",
+                            Version = 0,
+                            Size = 0,
+                            Type = 0,
+                            DLL = 0
+                        },
+                        Players = [new() { Name = "Tiny", Score = 114, Duration = 1919810.0f}],
+                        Rules = [new(){Name="coop", Value="fuckno"}]
+                    }
+                };
                 string json = JsonSerializer.Serialize(Config);
                 File.WriteAllText(configPath, json);
             }

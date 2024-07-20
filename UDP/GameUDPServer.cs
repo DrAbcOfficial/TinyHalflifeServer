@@ -14,9 +14,33 @@ namespace TinyHalflifeServer.UDP
             Player,
             Rules,
             Ping,
-            GetChallenge
+            GetChallenge,
+            Challenge
         }
         private readonly ServerInfo _serverInfo = info;
+
+        private byte[] BuildRDIPRespond()
+        {
+            using MemoryStream ms = new();
+            using BinaryWriter bw = new(ms);
+            //Non sense prefix
+            bw.Write(0xFFFFFFFF);
+            bw.Write(Encoding.UTF8.GetBytes($"L{Program.Config.RDIP.Destination}"));
+            return [.. ms.ToArray()];
+        }
+
+        private byte[] BuildRetryRespond() 
+        {
+            using MemoryStream ms = new();
+            using BinaryWriter bw = new(ms);
+            //Non sense prefix
+            bw.Write(0xFFFFFFFF);
+            //svc_stufftext
+            bw.Write((byte)0x09);
+            //cmd
+            bw.Write(Encoding.UTF8.GetBytes($"retry\0\x7\x3B"));
+            return [.. ms.ToArray()];
+        }
 
         private void A2SRespond(EndPoint endpoint, A2S_Type type)
         {
@@ -28,10 +52,16 @@ namespace TinyHalflifeServer.UDP
                 A2S_Type.Rules => _serverInfo.RenderA2SRulesRespond(),
                 A2S_Type.Ping => _serverInfo.RenderA2APingRespond(),
                 A2S_Type.GetChallenge => _serverInfo.RenderA2SServerQueryGetChallengeRespond(),
+                A2S_Type.Challenge => BuildRDIPRespond(),
                 _ => throw new Exception("Error A2S respond type!"),
             };
             Logger.Debug("Data responding: {0}", BitConverter.ToString(respond));
             SendAsync(endpoint, respond, 0, respond.Length);
+            if(type == A2S_Type.Challenge)
+            {
+                respond = BuildRetryRespond();
+                SendAsync(endpoint, respond, 0, respond.Length);
+            }
             Logger.Debug("Responded!");
         }
         private void S2ARequest(EndPoint endpoint, byte[] buffer)
@@ -86,6 +116,15 @@ namespace TinyHalflifeServer.UDP
                         Logger.Debug("S2A_SERVERQUERY_GETCHALLENGE");
                         Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
                         A2SRespond(endpoint, A2S_Type.GetChallenge);
+                        break;
+                    }
+                //g getchallenge steam
+                case 0x67:
+                    {
+                        Logger.Debug("getchallenge");
+                        Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
+                        if (Program.Config.RDIP.Enable)
+                            A2SRespond(endpoint, A2S_Type.Challenge);
                         break;
                     }
                 default:

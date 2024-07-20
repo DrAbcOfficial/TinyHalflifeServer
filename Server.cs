@@ -86,7 +86,6 @@ namespace TinyHalflifeServer
         public void Stop()
         {
             m_UdpServer.Stop();
-            m_TaskRunFrame.Dispose();
             m_SteamServerInfo.Stop();
         }
 
