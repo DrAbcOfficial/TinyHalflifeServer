@@ -107,7 +107,7 @@ namespace TinyHalflifeServer.Steam
         {
             SteamGameServer.LogOnAnonymous();
         }
-        public UInt16 GetQueryPort()
+        public ushort GetQueryPort()
         {
             return m_QueryPort;
         }
@@ -120,7 +120,7 @@ namespace TinyHalflifeServer.Steam
             return m_sAccountToken;
         }
 
-        public void InitServer(UInt16 port, string appid, string version, bool enablevac)
+        public void InitServer(ushort port, string version, bool enablevac)
         {
             if (enablevac)
                 m_eServerMode = EServerMode.eServerModeAuthenticationAndSecure;
@@ -136,10 +136,15 @@ namespace TinyHalflifeServer.Steam
             //if (!Init())
             //    Logger.Error("[CSteamGameServerAPIContext] initialize failed!");
 
-            SteamGameServer.SetProduct(appid);
+            SteamGameServer.SetProduct(Program.Config.Product);
             SteamGameServer.SetModDir(Program.Config.ServerInfo.GameFolder);
-            SteamGameServer.SetDedicatedServer(true);
+            SteamGameServer.SetServerName(Program.Config.ServerInfo.Name);
             SteamGameServer.SetGameDescription(Program.Config.ServerInfo.Description);
+            SteamGameServer.SetMapName(Program.Config.ServerInfo.Map);
+            SteamGameServer.SetPasswordProtected(Program.Config.ServerInfo.Passworded);
+            SteamGameServer.SetMaxPlayerCount(Program.Config.ServerInfo.MaxClients);
+            SteamGameServer.SetBotPlayerCount(Program.Config.ServerInfo.FakeClients);
+            SteamGameServer.SetDedicatedServer(true);
 
             m_bInitialized = true;
         }

@@ -4,7 +4,7 @@
     {
         public static void Debug(string message, params object?[] arg)
         {
-            if (true)
+            if (Program.Config.Debug)
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("debug: ");

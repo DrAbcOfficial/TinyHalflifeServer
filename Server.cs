@@ -13,7 +13,7 @@ namespace TinyHalflifeServer
         private Task m_TaskRunFrame;
         public void Initialize()
         {
-            m_SteamServerInfo.InitServer((ushort)Program.Config.Port, Program.Config.AppId, Program.Config.Version, Program.Config.ServerInfo.VAC);
+            m_SteamServerInfo.InitServer((ushort)Program.Config.Port, Program.Config.Version, Program.Config.ServerInfo.VAC);
             m_SteamServerInfo.SetAccountToken(Program.Config.GSLT);
             m_SteamServerInfo.LogOn();
 
@@ -95,15 +95,14 @@ namespace TinyHalflifeServer
 
         private void SendUpdatedServerDetails()
         {
-            SteamGameServer.SetProduct(Program.Config.AppId);
-            SteamGameServer.SetModDir(Program.Config.ServerInfo.GameFolder);
+            SteamGameServer.SetProduct(Program.Config.Product);
+            //SteamGameServer.SetModDir(Program.Config.ServerInfo.GameFolder);
             SteamGameServer.SetServerName(Program.Config.ServerInfo.Name);
             SteamGameServer.SetGameDescription(Program.Config.ServerInfo.Description);
             SteamGameServer.SetMapName(Program.Config.ServerInfo.Map);
             SteamGameServer.SetPasswordProtected(Program.Config.ServerInfo.Passworded);
             SteamGameServer.SetMaxPlayerCount(Program.Config.ServerInfo.MaxClients);
             SteamGameServer.SetBotPlayerCount(Program.Config.ServerInfo.FakeClients);
-            SteamGameServer.SetSpectatorPort(0);
         }
     }
 }

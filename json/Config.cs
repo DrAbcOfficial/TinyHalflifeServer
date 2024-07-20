@@ -1,4 +1,6 @@
-﻿namespace TinyHalflifeServer.Json
+﻿using TinyHalflifeServer.A2S;
+
+namespace TinyHalflifeServer.Json
 {
     public class JsonMirror
     {
@@ -32,7 +34,7 @@
         public string GameFolder = "svencoop";
         public string Description = "Tiny Sven Co-op";
         public int MaxClients = 32;
-        public int Protocol = 43;
+        public int Protocol = 17;
         public int Type = 0;
         public int OS = 0;
         public bool Passworded = true;
@@ -40,15 +42,22 @@
         public bool VAC = true;
         public int FakeClients = 0;
         public JsonModInfo ModInfo = new();
-        public List<JsonPlayerInfo> Players = [];
-        public List<JsonRulesInfo> Rules = [];
+        public List<JsonPlayerInfo> Players = [
+            new JsonPlayerInfo(){Name = "Tiny", Score = 114514, Duration = 256.0f}
+        ];
+        public List<JsonRulesInfo> Rules = [
+            new JsonRulesInfo(){Name="coop", Value="fuck"}
+        ];
     }
     public class Config
     {
-        public string AppId = "svencoop";
+        public string Product = "276060";
+        public int AppId = 225840;
         public string Version = "5.0.1.7";
         public string GSLT = "";
         public int Port = 27015;
+        public bool GoldSrc = false;
+        public bool Debug = false;
         public JsonMirror RDIP = new();
         public JsonServerInfo ServerInfo = new();
     }

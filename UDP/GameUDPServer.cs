@@ -98,7 +98,13 @@ namespace TinyHalflifeServer.UDP
                         A2SRespond(endpoint, buffer, A2S_Type.GetChallenge);
                         break;
                     }
-                default: Logger.Warn("Unknow S2A type, header: {0}, data: {1}", header, BitConverter.ToString(buffer)); break;
+                default:
+                    {
+                        Logger.Warn("Unknow S2A type, header: {0}, data: {1}", header, BitConverter.ToString(buffer));
+                        ReceiveAsync();
+                        break;
+                    }
+
             }
         }
 
@@ -112,7 +118,10 @@ namespace TinyHalflifeServer.UDP
                 S2A(endpoint, data);
             }
             else
-                Logger.Log("[" + endpoint.ToString() +  "]: Recive" + Encoding.UTF8.GetString(data));
+            {
+                Logger.Log("[" + endpoint.ToString() + "]: Recive" + Encoding.UTF8.GetString(data));
+                ReceiveAsync();
+            }
         }
         protected override void OnSent(EndPoint endpoint, long sent)
         {
