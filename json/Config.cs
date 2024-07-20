@@ -1,6 +1,4 @@
-﻿using TinyHalflifeServer.A2S;
-
-namespace TinyHalflifeServer.Json
+﻿namespace TinyHalflifeServer.Json
 {
     public class JsonMirror
     {

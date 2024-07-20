@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text.Json;
-using NetCoreServer;
+﻿using System.Text.Json;
 using Steamworks;
 using TinyHalflifeServer.Json;
 
