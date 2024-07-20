@@ -32,7 +32,7 @@ namespace TinyHalflifeServer
                 services.AddHostedService<HostedService>();
             })
             .Build();
-            host.Run();            
+            host.Run();
         }
 
         public class HostedService(IHostApplicationLifetime appLifetime) : IHostedService
