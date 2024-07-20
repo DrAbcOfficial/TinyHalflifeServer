@@ -46,6 +46,10 @@ namespace TinyHalflifeServer.Steam
         // game server callbacks
         protected Callback<GSPolicyResponse_t> m_CallbackGSPolicyResponse;
         protected Callback<ValidateAuthTicketResponse_t> m_CallbackValidateAuthTicketResponse;
+        //client
+        protected Callback<GSClientApprove_t> m_CallbackGSClientApprove;
+        protected Callback<GSClientDeny_t> m_CallbackGSClientDeny;
+        protected Callback<GSClientKick_t> m_CallbackGSClientKick;
         #endregion
         #region Varible
         protected EServerMode m_eServerMode;
@@ -74,6 +78,10 @@ namespace TinyHalflifeServer.Steam
 
             m_CallbackGSPolicyResponse = Callback<GSPolicyResponse_t>.CreateGameServer(OnGsPolicyResponse);
             m_CallbackValidateAuthTicketResponse = Callback<ValidateAuthTicketResponse_t>.CreateGameServer(OnValidateAuthTicketResponse);
+
+            m_CallbackGSClientApprove = Callback<GSClientApprove_t>.CreateGameServer(OnClientApprove);
+            m_CallbackGSClientDeny = Callback<GSClientDeny_t>.CreateGameServer(OnClientDeny);
+            m_CallbackGSClientKick = Callback<GSClientKick_t>.CreateGameServer(OnClientKick);
         }
         public bool BSecure()
         {
@@ -119,6 +127,10 @@ namespace TinyHalflifeServer.Steam
         {
             return m_sAccountToken;
         }
+        public void SetAccountToken(string token)
+        {
+            m_sAccountToken = token;
+        }
 
         public void InitServer(ushort port, string version, bool enablevac)
         {
@@ -144,12 +156,11 @@ namespace TinyHalflifeServer.Steam
 
             m_bInitialized = true;
         }
-
         public void Stop()
         {
             GameServer.Shutdown();
         }
-        public void LogOn()
+        public void LogInSteamServer()
         {
             switch (m_eServerMode)
             {
@@ -202,10 +213,7 @@ namespace TinyHalflifeServer.Steam
                 GameServer.RunCallbacks();
             }
         }
-        public void SetAccountToken(string token)
-        {
-            m_sAccountToken = token;
-        }
+
 
         public void OnValidateAuthTicketResponse(ValidateAuthTicketResponse_t pValidateAuthTicketResponse)
         {
@@ -236,9 +244,9 @@ namespace TinyHalflifeServer.Steam
         }
         public void OnLogonSuccess(SteamServersConnected_t pLogonSuccess)
         {
-            if(!BIsActive())
-                return ;
-            if(!m_bLogOnResult)
+            if (!BIsActive())
+                return;
+            if (!m_bLogOnResult)
             {
                 m_bLogOnResult = true;
             }
@@ -252,7 +260,7 @@ namespace TinyHalflifeServer.Steam
             {
                 Logger.Log("Assigned anonymous gameserver Steam ID {0}.", m_SteamIDGS.ToString());
             }
-            else if(m_SteamIDGS.BPersistentGameServerAccount())
+            else if (m_SteamIDGS.BPersistentGameServerAccount())
             {
                 Logger.Log("Assigned persistent gameserver Steam ID {0}.", m_SteamIDGS.ToString());
             }
@@ -343,6 +351,18 @@ namespace TinyHalflifeServer.Steam
                         return;
                 }
             }
+        }
+        public void OnClientApprove(GSClientApprove_t pApprove)
+        {
+            Logger.Log("[Steam] OnGSClientApprove steamid = {0}", pApprove.m_SteamID.ToString());
+        }
+        public void OnClientDeny(GSClientDeny_t pDeny)
+        {
+            Logger.Log("[Steam] OnGSClientDeny steamid = {0}", pDeny.m_SteamID.ToString());
+        }
+        public void OnClientKick(GSClientKick_t pKick)
+        {
+            Logger.Log("[Steam] OnGSClientKick steamid = {0} reason = {1}", pKick.m_SteamID.ToString(), pKick.m_eDenyReason.ToString());
         }
     }
 }

@@ -29,16 +29,15 @@ namespace TinyHalflifeServer.UDP
             return [.. ms.ToArray()];
         }
 
-        private byte[] BuildRetryRespond() 
+        private byte[] BuildRetryRespond()
         {
             using MemoryStream ms = new();
             using BinaryWriter bw = new(ms);
             //Non sense prefix
             bw.Write(0xFFFFFFFF);
-            //svc_stufftext
             bw.Write((byte)0x09);
             //cmd
-            bw.Write(Encoding.UTF8.GetBytes($"retry\0\x7\x3B"));
+            bw.Write((byte)0x01);
             return [.. ms.ToArray()];
         }
 

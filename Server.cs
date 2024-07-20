@@ -16,7 +16,7 @@ namespace TinyHalflifeServer
         {
             m_SteamServerInfo.InitServer((ushort)Program.Config.Port, Program.Config.Version, Program.Config.ServerInfo.VAC);
             m_SteamServerInfo.SetAccountToken(Program.Config.GSLT);
-            m_SteamServerInfo.LogOn();
+            m_SteamServerInfo.LogInSteamServer();
 
             //A2S Info
             m_ServerInfo.SetServerAddress($"{SteamGameServer.GetPublicIP().ToIPAddress()}:{Program.Config.Port}");
