@@ -37,7 +37,7 @@ namespace TinyHalflifeServer.UDP
             bw.Write(0xFFFFFFFF);
             bw.Write((byte)0x09);
             //cmd
-            bw.Write("retry\0");
+            bw.Write(Encoding.UTF8.GetBytes("retry\0"));
             return [.. ms.ToArray()];
         }
 
