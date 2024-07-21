@@ -25,7 +25,7 @@ namespace TinyHalflifeServer.UDP
             using BinaryWriter bw = new(ms);
             //Non sense prefix
             bw.Write(0xFFFFFFFF);
-            bw.Write(Encoding.UTF8.GetBytes($"L{Program.Config.RDIP.Destination}"));
+            bw.Write(Encoding.UTF8.GetBytes($"L{Program.Config.RDIP.IP}:{Program.Config.RDIP.Port}"));
             return [.. ms.ToArray()];
         }
 
@@ -37,7 +37,7 @@ namespace TinyHalflifeServer.UDP
             bw.Write(0xFFFFFFFF);
             bw.Write((byte)0x09);
             //cmd
-            bw.Write((byte)0x01);
+            bw.Write("retry\0");
             return [.. ms.ToArray()];
         }
 

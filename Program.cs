@@ -33,7 +33,8 @@ namespace TinyHalflifeServer
                     RDIP = new()
                     {
                         Enable = false,
-                        Destination = "127.0.0.1:27105"
+                        IP = "127.0.0.1",
+                        Port = 27105
                     },
                     ServerInfo = new()
                     {
