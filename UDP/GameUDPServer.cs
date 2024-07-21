@@ -146,7 +146,7 @@ namespace TinyHalflifeServer.UDP
             byte[] data = new byte[size];
             Array.Copy(buffer, offset, data, 0, size);
             //S2A request
-            if (data[0] == 0xFF && data[1] == 0xFF && data[2] == 0xFF && data[3] == 0xFF)
+            if (data.Length > 4 && data[0] == 0xFF && data[1] == 0xFF && data[2] == 0xFF && data[3] == 0xFF)
             {
                 S2ARequest(endpoint, data);
             }
