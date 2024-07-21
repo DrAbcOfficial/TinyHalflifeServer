@@ -124,6 +124,8 @@ namespace TinyHalflifeServer.UDP
                         Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
                         if (Program.Config.RDIP.Enable)
                             A2SRespond(endpoint, A2S_Type.Challenge);
+                        else
+                            ReceiveAsync();
                         break;
                     }
                 default:
@@ -152,7 +154,7 @@ namespace TinyHalflifeServer.UDP
             }
             else
             {
-                Logger.Log("[" + endpoint.ToString() + "]: Recive" + Encoding.UTF8.GetString(data));
+                Logger.Log("[" + endpoint.ToString() + "]: Recive Unknown data " + BitConverter.ToString(data));
                 ReceiveAsync();
             }
         }
