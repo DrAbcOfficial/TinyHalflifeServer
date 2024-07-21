@@ -9,7 +9,7 @@ namespace TinyHalflifeServer
 {
     internal class Program
     {
-        public static Config Config;
+        public static Config? Config;
         public static Server m_Server;
         static void Main()
         {
@@ -73,11 +73,11 @@ namespace TinyHalflifeServer
             m_Server.StartRun();
 
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
-            Console.WriteLine("Application is running. Press Ctrl+C to exit.");
+            Logger.Log("Application is running. Press Ctrl+C to exit.");
             Console.ReadLine();
         }
 
-        static void OnProcessExit(object sender, EventArgs e)
+        static void OnProcessExit(object? sender, EventArgs e)
         {
             m_Server.Stop();
             SteamAPI.Shutdown();

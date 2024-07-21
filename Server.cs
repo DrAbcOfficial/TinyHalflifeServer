@@ -9,8 +9,8 @@ namespace TinyHalflifeServer
     {
         private readonly SteamServer m_SteamServerInfo = new();
         private readonly ServerInfo m_ServerInfo = new();
-        private GameUDPServer m_UdpServer;
-        private Task m_TaskRunFrame;
+        private readonly GameUDPServer m_UdpServer;
+        private readonly Task m_TaskRunFrame;
 
         public Server()
         {
