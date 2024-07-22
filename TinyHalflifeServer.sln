@@ -5,6 +5,8 @@ VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TinyHalflifeServer", "TinyHalflifeServer.csproj", "{82EB97CE-AB85-48F5-AFB5-DD08201F0026}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RawUDPSender", "RawUDPSender\RawUDPSender.vcxproj", "{92F00CDE-1D2F-4E68-BF28-2F8559393570}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{82EB97CE-AB85-48F5-AFB5-DD08201F0026}.Release|x64.Build.0 = Release|Any CPU
 		{82EB97CE-AB85-48F5-AFB5-DD08201F0026}.Release|x86.ActiveCfg = Release|Any CPU
 		{82EB97CE-AB85-48F5-AFB5-DD08201F0026}.Release|x86.Build.0 = Release|Any CPU
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Debug|Any CPU.Build.0 = Debug|x64
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Debug|x64.ActiveCfg = Debug|x64
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Debug|x64.Build.0 = Debug|x64
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Debug|x86.ActiveCfg = Debug|Win32
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Debug|x86.Build.0 = Debug|Win32
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Release|Any CPU.ActiveCfg = Release|x64
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Release|Any CPU.Build.0 = Release|x64
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Release|x64.ActiveCfg = Release|x64
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Release|x64.Build.0 = Release|x64
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Release|x86.ActiveCfg = Release|Win32
+		{92F00CDE-1D2F-4E68-BF28-2F8559393570}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
