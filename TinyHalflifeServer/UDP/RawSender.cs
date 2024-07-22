@@ -34,6 +34,8 @@ namespace TinyHalflifeServer.UDP
             Marshal.FreeHGlobal(dstIpNative);
             Marshal.FreeHGlobal(srcIpNative);
 
+            Logger.Debug("Raw send udp size: {0}", ret);
+
             return ret;
         }
     }
