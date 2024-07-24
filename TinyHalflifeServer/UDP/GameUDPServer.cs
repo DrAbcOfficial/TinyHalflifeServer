@@ -159,14 +159,20 @@ namespace TinyHalflifeServer.UDP
                 case 0x67:
                     {
                         Logger.Debug("getchallenge");
-                        A2SRespond(endpoint, A2S_Type.Challenge);
+                        if(Program.Config.RDIP.Enable)
+                            A2SRespond(endpoint, A2S_Type.Challenge);
+                        else
+                            ReceiveAsync();
                         break;
                     }
                 //c connect
                 case 0x63:
                     {
                         Logger.Debug("connect");
-                        A2SRespond(endpoint, A2S_Type.Connect);
+                        if (Program.Config.RDIP.Enable)
+                            A2SRespond(endpoint, A2S_Type.Connect);
+                        else
+                            ReceiveAsync();
                         break;
                     }
                 default:
