@@ -20,15 +20,15 @@ namespace TinyHalflifeServer.A2S
 
         public string m_ModUrl = "";
         public string m_ModDownloadUrl = "";
-        public long m_ModVersion = 0;
-        public long m_ModSize = 0;
+        public int m_ModVersion = 0;
+        public int m_ModSize = 0;
         public ModType m_ModType = ModType.Unknown;
         public ModDLL m_ModDLL = ModDLL.Other;
     }
     internal class PlayerInfo
     {
         public string m_Name = "";
-        public long m_Score = 0;
+        public int m_Score = 0;
         public float m_Duration = 0.0f;
     }
     internal class RulesInfo
@@ -331,7 +331,7 @@ namespace TinyHalflifeServer.A2S
             //Header	byte	Should be equal to 'A' (0x41).
             bw.Write((byte)0x41);
             //Challenge	long	The challenge number to use.
-            bw.Write((long)0xFFFFFFFF);
+            bw.Write((uint)0xFFFFFFFF);
             return [.. ms.ToArray()];
         }
         #endregion
