@@ -25,7 +25,7 @@ namespace TinyHalflifeServer.UDP
         {
             using MemoryStream ms = new();
             using BinaryWriter bw = new(ms);
-            if (_serverInfo.GetServerPassworded())
+            if (!Program.Config.RDIP.Enable || _serverInfo.GetServerPassworded())
             {
                 bw.Write(-1);
                 //message
@@ -158,11 +158,7 @@ namespace TinyHalflifeServer.UDP
                 //g getchallenge steam
                 case 0x67:
                     {
-                        Logger.Debug("getchallenge");
-                        if(Program.Config.RDIP.Enable)
-                            A2SRespond(endpoint, A2S_Type.Challenge);
-                        else
-                            ReceiveAsync();
+                        A2SRespond(endpoint, A2S_Type.Challenge);
                         break;
                     }
                 //c connect
