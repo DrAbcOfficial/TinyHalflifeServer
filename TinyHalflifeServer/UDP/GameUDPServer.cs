@@ -25,11 +25,9 @@ namespace TinyHalflifeServer.UDP
         {
             using MemoryStream ms = new();
             using BinaryWriter bw = new(ms);
-            //none sense prefix
-            bw.Write(0xFFFFFFFF);
-
             if (_serverInfo.GetServerPassworded())
             {
+                bw.Write(-1);
                 //message
                 bw.Write((byte)0x6C);
                 bw.Write(Encoding.UTF8.GetBytes($"{Program.Config.Text.Kicked}\0"));
@@ -37,6 +35,8 @@ namespace TinyHalflifeServer.UDP
             else
             {
                 //S2C_CHALLENGE
+                //none sense prefix
+                bw.Write(0xFFFFFFFF);
                 //generate fake challenge
                 Random random = new();
                 static uint NextUInt(Random random, uint minValue, uint maxValue)
