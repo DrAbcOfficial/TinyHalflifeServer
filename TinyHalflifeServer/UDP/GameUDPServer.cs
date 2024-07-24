@@ -1,4 +1,5 @@
 ﻿using NetCoreServer;
+using Steamworks;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -15,10 +16,75 @@ namespace TinyHalflifeServer.UDP
             Rules,
             Ping,
             GetChallenge,
-            Challenge
+            Challenge,
+            Connect
         }
         private readonly ServerInfo _serverInfo = info;
 
+        private byte[] RenderGetChallengeRespond()
+        {
+            using MemoryStream ms = new();
+            using BinaryWriter bw = new(ms);
+            //none sense prefix
+            bw.Write(0xFFFFFFFF);
+
+            if (_serverInfo.GetServerPassworded())
+            {
+                //message
+                bw.Write((byte)0x6C);
+                bw.Write(Encoding.UTF8.GetBytes($"{Program.Config.Text.Kicked}\0"));
+            }
+            else
+            {
+                //S2C_CHALLENGE
+                //generate fake challenge
+                Random random = new();
+                static uint NextUInt(Random random, uint minValue, uint maxValue)
+                {
+                    ulong range = (ulong)maxValue - minValue + 1;
+                    ulong randomValue = (ulong)(random.NextDouble() * range) + minValue;
+                    return (uint)randomValue;
+                };
+                uint challenge = (NextUInt(random, 0, 0x7fff) << 16) | (NextUInt(random, 0, 0xffff));
+                bw.Write(Encoding.UTF8.GetBytes(string.Format("A00000000 {0} 3 {1} {2}\n\0", challenge, SteamGameServer.GetSteamID().m_SteamID.ToString(), SteamGameServer.BSecure() ? 1 : 0)));
+            }
+            return [.. ms.ToArray()];
+        }
+        private static byte[] RenderConnectRespond()
+        {
+            /*
+             * https://oxikkk.github.io/articles/goldsrc_connection_process.html
+             *  B 165 "158.XXX.50.XX:27005" 0 8156
+             *  ^ ^   ^                     ^ ^
+             *  | |   |                     | server build number
+             *  | |   |                     always zero (unknown)
+             *  | |   "true" ip address
+             *  | user id
+             *  message id
+            */
+            using MemoryStream ms = new();
+            using BinaryWriter bw = new(ms);
+            //none sense prefix
+            bw.Write(0xFFFFFFFF);
+            bw.Write(Encoding.UTF8.GetBytes($"B {233}\"{Program.Config.RDIP.IP}:{Program.Config.RDIP.Port}\" 0 {1234}"));
+            return [.. ms.ToArray()];
+        }
+        private void SendRDIPMessage(EndPoint endpoint)
+        {
+            using MemoryStream ms = new();
+            using BinaryWriter bw = new(ms);
+            //msg channel 1, no fragment
+            //little eddin
+            bw.Write(0x80000001);
+            //no ongoing outer
+            bw.Write(0x00000000);
+            //svc_stufftext
+            bw.Write((byte)9);
+            bw.Write(Encoding.UTF8.GetBytes(string.Format("reconnect {0}:{1}\n\0", Program.Config.RDIP.IP, Program.Config.RDIP.Port)));
+            byte[] respond = ms.ToArray();
+            SendAsync(endpoint, respond, 0, respond.Length);
+            Logger.Debug("[" + endpoint.ToString() + "]: RDIP responded data " + BitConverter.ToString(respond));
+        }
         private void A2SRespond(EndPoint endpoint, A2S_Type type)
         {
             Logger.Debug("Responding ip:{0}, type:{1}", endpoint.ToString(), type);
@@ -29,11 +95,17 @@ namespace TinyHalflifeServer.UDP
                 A2S_Type.Rules => _serverInfo.RenderA2SRulesRespond(),
                 A2S_Type.Ping => _serverInfo.RenderA2APingRespond(),
                 A2S_Type.GetChallenge => _serverInfo.RenderA2SServerQueryGetChallengeRespond(),
+                A2S_Type.Challenge => RenderGetChallengeRespond(),
+                A2S_Type.Connect => RenderConnectRespond(),
                 _ => throw new Exception("Error A2S respond type!"),
             };
             Logger.Debug("Data responding: {0}", BitConverter.ToString(respond));
             SendAsync(endpoint, respond, 0, respond.Length);
             Logger.Debug("Responded!");
+            if (type == A2S_Type.Connect)
+            {
+                SendRDIPMessage(endpoint);
+            }
         }
         private void S2ARequest(EndPoint endpoint, byte[] buffer)
         {
@@ -42,13 +114,13 @@ namespace TinyHalflifeServer.UDP
             int prefix = br.ReadInt32();
             byte header = br.ReadByte();
             Logger.Debug("S2A prefix:{0} header:{1}", prefix, header);
+            Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
             switch (header)
             {
                 //T A2S_INFO
                 case 0x54:
                     {
                         Logger.Debug("S2A_INFO");
-                        Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
                         string paylod = Encoding.UTF8.GetString(br.ReadBytes(20));
                         //int challenge = br.ReadInt32();
                         Logger.Debug("S2A_INFO paylod: {0}", paylod);
@@ -59,8 +131,6 @@ namespace TinyHalflifeServer.UDP
                 case 0x55:
                     {
                         Logger.Debug("S2A_PLAYER");
-                        Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
-                        //int challenge = br.ReadInt32();
                         A2SRespond(endpoint, A2S_Type.Player);
                         break;
                     }
@@ -68,8 +138,6 @@ namespace TinyHalflifeServer.UDP
                 case 0x56:
                     {
                         Logger.Debug("S2A_RULES");
-                        Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
-                        //int challenge = br.ReadInt32();
                         A2SRespond(endpoint, A2S_Type.Rules);
                         break;
                     }
@@ -77,7 +145,6 @@ namespace TinyHalflifeServer.UDP
                 case 0x69:
                     {
                         Logger.Debug("A2A_PING");
-                        Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
                         A2SRespond(endpoint, A2S_Type.Ping);
                         break;
                     }
@@ -85,7 +152,6 @@ namespace TinyHalflifeServer.UDP
                 case 0x57:
                     {
                         Logger.Debug("S2A_SERVERQUERY_GETCHALLENGE");
-                        Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
                         A2SRespond(endpoint, A2S_Type.GetChallenge);
                         break;
                     }
@@ -93,18 +159,19 @@ namespace TinyHalflifeServer.UDP
                 case 0x67:
                     {
                         Logger.Debug("getchallenge");
-                        Logger.Debug("Data before reading string: {0}", BitConverter.ToString(buffer));
-                        if (Program.Config.RDIP.Enable)
-                        {
-                            IPEndPoint ep = endpoint as IPEndPoint;
-                            RawSender.Send(ep.Address.ToString(), ep.Port, Program.Config.RDIP.IP, Program.Config.RDIP.Port, buffer);
-                        }
-                        ReceiveAsync();
+                        A2SRespond(endpoint, A2S_Type.Challenge);
+                        break;
+                    }
+                //c connect
+                case 0x63:
+                    {
+                        Logger.Debug("connect");
+                        A2SRespond(endpoint, A2S_Type.Connect);
                         break;
                     }
                 default:
                     {
-                        Logger.Warn("Unknow S2A type, header: {0}, data: {1}", header, BitConverter.ToString(buffer));
+                        Logger.Warn("Unknow S2A type, header: 0x{0}", BitConverter.ToString([header]));
                         ReceiveAsync();
                         break;
                     }
@@ -128,7 +195,7 @@ namespace TinyHalflifeServer.UDP
             }
             else
             {
-                Logger.Log("[" + endpoint.ToString() + "]: Recive Unknown data " + BitConverter.ToString(data));
+                Logger.Debug("[" + endpoint.ToString() + "]: Recive Unknown data " + BitConverter.ToString(data));
                 ReceiveAsync();
             }
         }

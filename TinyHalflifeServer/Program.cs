@@ -1,8 +1,5 @@
-﻿using System.Diagnostics;
-using System.Drawing;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Steamworks;
-using TinyHalflifeServer.A2S;
 using TinyHalflifeServer.Json;
 
 namespace TinyHalflifeServer
@@ -61,6 +58,10 @@ namespace TinyHalflifeServer
                         },
                         Players = [new() { Name = "Tiny", Score = 114, Duration = 1919810.0f}],
                         Rules = [new(){Name="coop", Value="fuckno"}]
+                    },
+                    Text = new()
+                    {
+                        Kicked = "You have been banned from this server."
                     }
                 };
                 string json = JsonSerializer.Serialize(Config);

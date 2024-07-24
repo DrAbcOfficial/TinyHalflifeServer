@@ -8,6 +8,7 @@ public class Config
     public int Port { get; set; }
     public bool GoldSrc { get; set; }
     public bool Debug { get; set; }
+    public JsonText Text { get; set; }
     public JsonMirror RDIP { get; set; }
     public JsonServerInfo ServerInfo { get; set; }
 }

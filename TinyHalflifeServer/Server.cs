@@ -12,6 +12,11 @@ namespace TinyHalflifeServer
         private readonly GameUDPServer m_UdpServer;
         private readonly Task m_TaskRunFrame;
 
+        public SteamServer GetSteamServer()
+        {
+            return m_SteamServerInfo;
+        }
+
         public Server()
         {
             m_SteamServerInfo.InitServer((ushort)Program.Config.Port, Program.Config.Version, Program.Config.ServerInfo.VAC);
