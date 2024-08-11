@@ -1,5 +1,6 @@
-﻿using System.Text.Json;
-using Steamworks;
+﻿using Steamworks;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using TinyHalflifeServer.Json;
 
 namespace TinyHalflifeServer;
@@ -10,13 +11,28 @@ internal class Program
     public static Server? m_Server;
     static void Main()
     {
+        bool steamapi_exists = (
+            (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && File.Exists("./steam_api64.dll")) ||
+            (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && File.Exists("./steam_api64.so")) ||
+            (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && File.Exists("./steam_api64.dylib")));
+        if(!steamapi_exists)
+        {
+            Logger.Crit("****************************************");
+            Logger.Crit("*     SteamAPI dose not exist!         *");
+            Logger.Crit("*    Grab steam_api64.dll/so/dylib     *");
+            Logger.Crit("* from https://partner.steamgames.com/ *");
+            Logger.Crit("*  or your favorite game install dir   *");
+            Logger.Crit("****************************************");
+            return;
+        }
+
         Logger.Log("Hello, World!");
         const string configPath = "./config.json";
         if (Path.Exists(configPath))
         {
             Config = JsonSerializer.Deserialize<Config>(File.ReadAllText(configPath));
         }
-        if(Config == null)
+        if (Config == null)
         {
             Config = new()
             {
@@ -44,7 +60,7 @@ internal class Program
                     Type = 0,
                     OS = 0,
                     Passworded = true,
-                    Moded =false,
+                    Moded = false,
                     VAC = true,
                     FakeClients = 0,
                     ModInfo = new()
@@ -56,8 +72,8 @@ internal class Program
                         Type = 0,
                         DLL = 0
                     },
-                    Players = [new() { Name = "Tiny", Score = 114, Duration = 1919810.0f}],
-                    Rules = [new(){Name="coop", Value="fuckno"}]
+                    Players = [new() { Name = "Tiny", Score = 114, Duration = 1919810.0f }],
+                    Rules = [new() { Name = "coop", Value = "fuckno" }]
                 },
                 Text = new()
                 {
