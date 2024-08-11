@@ -25,6 +25,15 @@ internal class Program
             Logger.Crit("****************************************");
             return;
         }
+        if (!Path.Exists("./steam_appid.txt"))
+        {
+            Logger.Crit("****************************************");
+            Logger.Crit("*     steam_appid dose not exist!      *");
+            Logger.Crit("*         Grab steam_appid.txt         *");
+            Logger.Crit("* from your favorite game install dir  *");
+            Logger.Crit("****************************************");
+            return;
+        }
 
         Logger.Log("Hello, World!");
         const string configPath = "./config.json";
@@ -47,7 +56,8 @@ internal class Program
                 {
                     Enable = false,
                     IP = "127.0.0.1",
-                    Port = 27105
+                    Port = 27105,
+                    Method = 0
                 },
                 ServerInfo = new()
                 {

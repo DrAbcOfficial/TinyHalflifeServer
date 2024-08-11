@@ -141,7 +141,7 @@ public class SteamServer
             m_eServerMode = EServerMode.eServerModeAuthentication;
 
         if (!GameServer.Init(0, port, Constants.STEAMGAMESERVER_QUERY_PORT_SHARED, m_eServerMode, version))
-            Logger.Error("[SteamGameServer] Unable to initialize Steam Game Server.");
+            Logger.Crit("[SteamGameServer] Unable to initialize Steam Game Server.");
         else
             Logger.Log("[SteamGameServer] Initialize Steam Game Server success.");
 

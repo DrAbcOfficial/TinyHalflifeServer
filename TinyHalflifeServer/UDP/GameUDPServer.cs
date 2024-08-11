@@ -20,6 +20,7 @@ internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.An
         Connect
     }
     private readonly ServerInfo _serverInfo = info;
+    private readonly Dictionary<EndPoint, bool> _connectedClient = [];
 
     private byte[] RenderGetChallengeRespond()
     {
@@ -29,7 +30,7 @@ internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.An
         {
             bw.Write(-1);
             //message
-            bw.Write((byte)0x6C);
+            bw.Write((byte)0x39);
             bw.Write(Encoding.UTF8.GetBytes($"{Program.Config!.Text!.Kicked}\0"));
         }
         else
@@ -69,22 +70,6 @@ internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.An
         bw.Write(Encoding.UTF8.GetBytes($"B {233}\"{Program.Config!.RDIP!.IP}:{Program.Config.RDIP.Port}\" 0 {1234}"));
         return [.. ms.ToArray()];
     }
-    private void SendRDIPMessage(EndPoint endpoint)
-    {
-        using MemoryStream ms = new();
-        using BinaryWriter bw = new(ms);
-        //msg channel 1, no fragment
-        //little eddin
-        bw.Write(0x80000001);
-        //no ongoing outer
-        bw.Write(0x00000000);
-        //svc_stufftext
-        bw.Write((byte)9);
-        bw.Write(Encoding.UTF8.GetBytes(string.Format("connect {0}:{1}\n\0", Program.Config!.RDIP!.IP, Program.Config.RDIP.Port)));
-        byte[] respond = ms.ToArray();
-        SendAsync(endpoint, respond, 0, respond.Length);
-        Logger.Debug("[" + endpoint.ToString() + "]: RDIP responded data " + BitConverter.ToString(respond));
-    }
     private void A2SRespond(EndPoint endpoint, A2S_Type type)
     {
         Logger.Debug("Responding ip:{0}, type:{1}", endpoint.ToString(), type);
@@ -104,8 +89,63 @@ internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.An
         Logger.Debug("Responded!");
         if (type == A2S_Type.Connect)
         {
-            SendRDIPMessage(endpoint);
+            _connectedClient[endpoint] = true;
         }
+    }
+    private bool RedirectConnectedClient(EndPoint endPoint, byte[] bytes)
+    {
+        if(_connectedClient.ContainsKey(endPoint))
+        {
+            switch (Program.Config!.RDIP!.Method)
+            {
+                case 1:
+                    {
+                        using MemoryStream ms = new(bytes);
+                        using BinaryReader br = new(ms);
+                        int w1 = br.ReadInt32();
+                        int w2 = br.ReadInt32();
+                        bool send_reliable = (w1 & (1 << 31)) != 0;
+                        bool send_reliable_fragment = (w1 & (1 << 30)) != 0;
+                        bool chan_incoming_reliable_sequence = (w2 & (1 << 31)) != 0;
+                        int chan_outgoing_sequence = w1 & ~(1 << 31) & ~(1 << 30);
+                        int chan_incoming_sequence = w2 & ~(1 << 31);
+                        List<byte> buffer = [];
+                        buffer.AddRange(bytes);
+                        buffer.RemoveRange(0, 8);
+                        buffer = [.. Encoder.UnMunge([.. buffer], chan_outgoing_sequence - 1, 1)];
+                        buffer.AddRange(Encoding.UTF8.GetBytes("reconnect\n\0"));
+                        buffer = [.. Encoder.Munge([.. buffer], chan_outgoing_sequence - 1, 1)];
+                        using MemoryStream ws = new();
+                        using BinaryWriter bw = new(ws);
+                        bw.Write(w1);
+                        bw.Write(w2);
+                        bw.Write(buffer.ToArray());
+                        SendAsync(endPoint, ws.ToArray());
+                        break;
+                    }
+                case 0:
+                default:
+                    {
+                        using MemoryStream ms = new();
+                        using BinaryWriter bw = new(ms);
+                        //msg channel 1, no fragment
+                        //little eddin
+                        bw.Write(0x80000001);
+                        //no ongoing outer
+                        bw.Write(0x00000000);
+                        //svc_stufftext
+                        bw.Write((byte)9);
+                        bw.Write(Encoding.UTF8.GetBytes($"connect {Program.Config!.RDIP!.IP}:{Program.Config.RDIP.Port}\n\0"));
+                        byte[] respond = ms.ToArray();
+                        SendAsync(endPoint, respond, 0, respond.Length);
+                        Logger.Debug("[" + endPoint.ToString() + "]: RDIP responded data " + BitConverter.ToString(respond));
+                        break;
+                    }
+            }
+            _connectedClient.Remove(endPoint);
+            return true;
+        }
+        return false;
     }
     private void S2ARequest(EndPoint endpoint, byte[] buffer)
     {
@@ -197,8 +237,11 @@ internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.An
         }
         else
         {
-            Logger.Debug("[" + endpoint.ToString() + "]: Recive Unknown data " + BitConverter.ToString(data));
-            ReceiveAsync();
+            if (!RedirectConnectedClient(endpoint, buffer))
+            {
+                Logger.Debug("[" + endpoint.ToString() + "]: Recive Unknown data " + BitConverter.ToString(data));
+                ReceiveAsync();
+            }
         }
     }
     protected override void OnSent(EndPoint endpoint, long sent)
