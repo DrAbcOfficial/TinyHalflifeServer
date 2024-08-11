@@ -7,7 +7,7 @@ using TinyHalflifeServer.A2S;
 
 namespace TinyHalflifeServer.UDP;
 
-internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.Any, port)
+internal class GameUDPServer(int port, ServerInfo serverInfo) : UdpServer(IPAddress.Any, port)
 {
     private enum A2S_Type
     {
@@ -19,14 +19,13 @@ internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.An
         Challenge,
         Connect
     }
-    private readonly ServerInfo _serverInfo = info;
     private readonly Dictionary<EndPoint, bool> _connectedClient = [];
 
     private byte[] RenderGetChallengeRespond()
     {
         using MemoryStream ms = new();
         using BinaryWriter bw = new(ms);
-        if (!Program.Config!.RDIP!.Enable || _serverInfo.GetServerPassworded())
+        if (!Program.Config!.RDIP!.Enable || serverInfo.GetServerPassworded())
         {
             bw.Write(-1);
             //message
@@ -75,11 +74,11 @@ internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.An
         Logger.Debug("Responding ip:{0}, type:{1}", endpoint.ToString(), type);
         byte[] respond = type switch
         {
-            A2S_Type.Info => _serverInfo.RenderA2SInfoRespond(),
-            A2S_Type.Player => _serverInfo.RenderA2SPlayerRespond(),
-            A2S_Type.Rules => _serverInfo.RenderA2SRulesRespond(),
-            A2S_Type.Ping => _serverInfo.RenderA2APingRespond(),
-            A2S_Type.GetChallenge => _serverInfo.RenderA2SServerQueryGetChallengeRespond(),
+            A2S_Type.Info => serverInfo.RenderA2SInfoRespond(),
+            A2S_Type.Player => serverInfo.RenderA2SPlayerRespond(),
+            A2S_Type.Rules => serverInfo.RenderA2SRulesRespond(),
+            A2S_Type.Ping => serverInfo.RenderA2APingRespond(),
+            A2S_Type.GetChallenge => serverInfo.RenderA2SServerQueryGetChallengeRespond(),
             A2S_Type.Challenge => RenderGetChallengeRespond(),
             A2S_Type.Connect => RenderConnectRespond(),
             _ => throw new Exception("Error A2S respond type!"),
@@ -94,7 +93,7 @@ internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.An
     }
     private bool RedirectConnectedClient(EndPoint endPoint, byte[] bytes)
     {
-        if(_connectedClient.ContainsKey(endPoint))
+        if (_connectedClient.ContainsKey(endPoint))
         {
             switch (Program.Config!.RDIP!.Method)
             {
@@ -232,12 +231,10 @@ internal class GameUDPServer(int port, ServerInfo info) : UdpServer(IPAddress.An
         Array.Copy(buffer, offset, data, 0, size);
         //S2A request
         if (data.Length > 4 && data[0] == 0xFF && data[1] == 0xFF && data[2] == 0xFF && data[3] == 0xFF)
-        {
             S2ARequest(endpoint, data);
-        }
         else
         {
-            if (!RedirectConnectedClient(endpoint, buffer))
+            if (!RedirectConnectedClient(endpoint, data))
             {
                 Logger.Debug("[" + endpoint.ToString() + "]: Recive Unknown data " + BitConverter.ToString(data));
                 ReceiveAsync();

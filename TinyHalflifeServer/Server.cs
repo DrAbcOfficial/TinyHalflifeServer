@@ -11,7 +11,6 @@ public class Server
     private readonly SteamServer m_SteamServerInfo = new();
     private readonly ServerInfo m_ServerInfo = new();
     private readonly UdpServer? m_UdpServer;
-    private readonly FullForwardUDPServer? m_FullFowardServer;
     private readonly Task? m_TaskRunFrame;
 
     public SteamServer GetSteamServer()
