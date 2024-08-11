@@ -1,4 +1,5 @@
-﻿using Steamworks;
+﻿using NetCoreServer;
+using Steamworks;
 using TinyHalflifeServer.A2S;
 using TinyHalflifeServer.Steam;
 using TinyHalflifeServer.UDP;
@@ -9,7 +10,8 @@ public class Server
 {
     private readonly SteamServer m_SteamServerInfo = new();
     private readonly ServerInfo m_ServerInfo = new();
-    private readonly GameUDPServer? m_UdpServer;
+    private readonly UdpServer? m_UdpServer;
+    private readonly FullForwardUDPServer? m_FullFowardServer;
     private readonly Task? m_TaskRunFrame;
 
     public SteamServer GetSteamServer()
@@ -68,7 +70,11 @@ public class Server
         }
         if (m_SteamServerInfo.BLoggedOn())
         {
-            m_UdpServer = new(Program.Config.Port, m_ServerInfo);
+            if (Program.Config!.RDIP!.Method == 2)
+                m_UdpServer = new FullForwardUDPServer(Program.Config.Port, m_ServerInfo);
+            else
+                m_UdpServer = new GameUDPServer(Program.Config.Port, m_ServerInfo);
+
             m_TaskRunFrame = new(() =>
             {
                 while (true)
