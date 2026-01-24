@@ -97,6 +97,26 @@ internal class GameUDPServer(int port, ServerInfo serverInfo) : UdpServer(IPAddr
         {
             switch (Program.Config!.RDIP!.Method)
             {
+                case 3:
+                    {
+                        string connect_str = $"connect {Program.Config!.RDIP!.IP}:{Program.Config.RDIP.Port}\n\0";
+                        using MemoryStream ms = new();
+                        using BinaryWriter bw = new(ms);
+                        //msg channel 1, no fragment
+                        //little eddin
+                        bw.Write(0x80000001);
+                        //no ongoing outer
+                        bw.Write(0x00000000);
+                        //svc_stufftext
+                        bw.Write((byte)51);
+                        bw.Write((byte)(connect_str.Length + 2));
+                        bw.Write((byte)10);
+                        bw.Write(Encoding.UTF8.GetBytes(connect_str));
+                        byte[] respond = ms.ToArray();
+                        SendAsync(endPoint, respond, 0, respond.Length);
+                        Logger.Debug("[" + endPoint.ToString() + "]: RDIP responded data " + BitConverter.ToString(respond));
+                        break;
+                    }
                 case 1:
                     {
                         using MemoryStream ms = new(bytes);

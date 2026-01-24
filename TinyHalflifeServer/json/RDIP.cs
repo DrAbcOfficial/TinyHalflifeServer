@@ -7,5 +7,6 @@ public class JsonMirror
     //0 = stufftext
     //1 = reconnect
     //2 = full forward
+    //3 =  director
     public int Method { get; set; }
 }
