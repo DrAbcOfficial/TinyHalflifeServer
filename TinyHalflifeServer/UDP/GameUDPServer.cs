@@ -1,4 +1,5 @@
-﻿using NetCoreServer;
+﻿using GoldsrcNetPackage;
+using NetCoreServer;
 using Steamworks;
 using System.Net;
 using System.Net.Sockets;
@@ -9,6 +10,7 @@ namespace TinyHalflifeServer.UDP;
 
 internal class GameUDPServer(int port, ServerInfo serverInfo) : UdpServer(IPAddress.Any, port)
 {
+    internal static uint ChallengeValue = 1046947320;
     private enum A2S_Type
     {
         Info,
@@ -23,32 +25,25 @@ internal class GameUDPServer(int port, ServerInfo serverInfo) : UdpServer(IPAddr
 
     private byte[] RenderGetChallengeRespond()
     {
-        using MemoryStream ms = new();
-        using BinaryWriter bw = new(ms);
         if (!Program.Config!.RDIP!.Enable || serverInfo.GetServerPassworded())
         {
-            bw.Write(-1);
-            //message
-            bw.Write((byte)0x39);
-            bw.Write(Encoding.UTF8.GetBytes($"{Program.Config!.Text!.Kicked}\0"));
+            //0x39 S2C_KICK
+            return GameFullPackage.GetConnectionlessBytes($"9{Program.Config!.Text!.Kicked}\0");
         }
         else
         {
             //S2C_CHALLENGE
-            //none sense prefix
-            bw.Write(0xFFFFFFFF);
             //generate fake challenge
-            Random random = new();
-            static uint NextUInt(Random random, uint minValue, uint maxValue)
-            {
-                ulong range = (ulong)maxValue - minValue + 1;
-                ulong randomValue = (ulong)(random.NextDouble() * range) + minValue;
-                return (uint)randomValue;
-            };
-            uint challenge = (NextUInt(random, 0, 0x7fff) << 16) | (NextUInt(random, 0, 0xffff));
-            bw.Write(Encoding.UTF8.GetBytes(string.Format("A00000000 {0} 3 {1} {2}\n\0", challenge, SteamGameServer.GetSteamID().m_SteamID.ToString(), SteamGameServer.BSecure() ? 1 : 0)));
+            //Random random = new();
+            //static uint NextUInt(Random random, uint minValue, uint maxValue)
+            //{
+            //    ulong range = (ulong)maxValue - minValue + 1;
+            //    ulong randomValue = (ulong)(random.NextDouble() * range) + minValue;
+            //    return (uint)randomValue;
+            //};
+            //uint challenge = (NextUInt(random, 0, 0x7fff) << 16) | (NextUInt(random, 0, 0xffff));
+            return GameFullPackage.GetConnectionlessBytes(string.Format("A00000000 {0} 3 {1} {2}\n\0", ChallengeValue, SteamGameServer.GetSteamID().m_SteamID.ToString(), SteamGameServer.BSecure() ? 1 : 0));
         }
-        return [.. ms.ToArray()];
     }
     private static byte[] RenderConnectRespond()
     {
@@ -62,12 +57,7 @@ internal class GameUDPServer(int port, ServerInfo serverInfo) : UdpServer(IPAddr
          *  | user id
          *  message id
         */
-        using MemoryStream ms = new();
-        using BinaryWriter bw = new(ms);
-        //none sense prefix
-        bw.Write(0xFFFFFFFF);
-        bw.Write(Encoding.UTF8.GetBytes($"B {233}\"{Program.Config!.RDIP!.IP}:{Program.Config.RDIP.Port}\" 0 {1234}"));
-        return [.. ms.ToArray()];
+        return GameFullPackage.GetConnectionlessBytes($"B {233}\"{Program.Config!.RDIP!.IP}:{Program.Config.RDIP.Port}\" 0 {1234}");
     }
     private void A2SRespond(EndPoint endpoint, A2S_Type type)
     {
@@ -99,22 +89,14 @@ internal class GameUDPServer(int port, ServerInfo serverInfo) : UdpServer(IPAddr
             {
                 case 3:
                     {
-                        string connect_str = $"connect {Program.Config!.RDIP!.IP}:{Program.Config.RDIP.Port}\n\0";
-                        using MemoryStream ms = new();
-                        using BinaryWriter bw = new(ms);
-                        //msg channel 1, no fragment
-                        //little eddin
-                        bw.Write(0x80000001);
-                        //no ongoing outer
-                        bw.Write(0x00000000);
-                        //svc_stufftext
-                        bw.Write((byte)51);
-                        bw.Write((byte)(connect_str.Length + 2));
-                        bw.Write((byte)10);
-                        bw.Write(Encoding.UTF8.GetBytes(connect_str));
-                        byte[] respond = ms.ToArray();
+                        string connect_str = $"connect {Program.Config!.RDIP!.IP}:{Program.Config.RDIP.Port}";
+                        using GameNetworkMessage msg = new(51);
+                        msg.WriteByte((byte)(connect_str.Length + 2));
+                        msg.WriteByte(10);
+                        msg.WriteString(connect_str);
+                        byte[] respond = GameFullPackage.GetConnectedBytes(ChallengeValue, 0, 1, GameFullPackage.OpCode.svc_usermessage, msg);
                         SendAsync(endPoint, respond, 0, respond.Length);
-                        Logger.Debug("[" + endPoint.ToString() + "]: RDIP responded data " + BitConverter.ToString(respond));
+                        Logger.Debug("[" + endPoint.ToString() + "]: RDIP 3 responded data " + BitConverter.ToString(respond));
                         break;
                     }
                 case 1:
@@ -131,9 +113,9 @@ internal class GameUDPServer(int port, ServerInfo serverInfo) : UdpServer(IPAddr
                         List<byte> buffer = [];
                         buffer.AddRange(bytes);
                         buffer.RemoveRange(0, 8);
-                        buffer = [.. Encoder.UnMunge([.. buffer], chan_outgoing_sequence - 1, 1)];
+                        buffer = [.. MungeEncoder.UnMunge([.. buffer], chan_outgoing_sequence - 1, 1)];
                         buffer.AddRange(Encoding.UTF8.GetBytes("reconnect\n\0"));
-                        buffer = [.. Encoder.Munge([.. buffer], chan_outgoing_sequence - 1, 1)];
+                        buffer = [.. MungeEncoder.Munge([.. buffer], chan_outgoing_sequence - 1, 1)];
                         using MemoryStream ws = new();
                         using BinaryWriter bw = new(ws);
                         bw.Write(w1);
@@ -145,19 +127,11 @@ internal class GameUDPServer(int port, ServerInfo serverInfo) : UdpServer(IPAddr
                 case 0:
                 default:
                     {
-                        using MemoryStream ms = new();
-                        using BinaryWriter bw = new(ms);
-                        //msg channel 1, no fragment
-                        //little eddin
-                        bw.Write(0x80000001);
-                        //no ongoing outer
-                        bw.Write(0x00000000);
-                        //svc_stufftext
-                        bw.Write((byte)9);
-                        bw.Write(Encoding.UTF8.GetBytes($"connect {Program.Config!.RDIP!.IP}:{Program.Config.RDIP.Port}\n\0"));
-                        byte[] respond = ms.ToArray();
+                        using GameNetworkMessage msg = new(9);
+                        msg.WriteString($"connect {Program.Config!.RDIP!.IP}:{Program.Config.RDIP.Port}\n\0");
+                        byte[] respond = GameFullPackage.GetConnectedBytes(ChallengeValue, 0, 1, GameFullPackage.OpCode.svc_usermessage, msg);
                         SendAsync(endPoint, respond, 0, respond.Length);
-                        Logger.Debug("[" + endPoint.ToString() + "]: RDIP responded data " + BitConverter.ToString(respond));
+                        Logger.Debug("[" + endPoint.ToString() + "]: RDIP 0 responded data " + BitConverter.ToString(respond));
                         break;
                     }
             }

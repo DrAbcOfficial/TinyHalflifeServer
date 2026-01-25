@@ -13,7 +13,7 @@ internal class Program
     {
         bool steamapi_exists = (
             (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && File.Exists("./steam_api64.dll")) ||
-            (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && File.Exists("./steam_api64.so")) ||
+            (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && File.Exists("./libsteam_api.so")) ||
             (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && File.Exists("./steam_api64.dylib")));
         if(!steamapi_exists)
         {

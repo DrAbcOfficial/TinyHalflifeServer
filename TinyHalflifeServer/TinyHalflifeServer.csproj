@@ -13,4 +13,8 @@
     <PackageReference Include="Steamworks.NET" Version="2024.8.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\GoldsrcNetPackage\GoldsrcNetPackage.csproj" />
+  </ItemGroup>
+
 </Project>
